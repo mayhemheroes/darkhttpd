@@ -14,8 +14,8 @@ RUN make darkhttpd-static \
 
 #WORKDIR /src/devel
 
-RUN clang -c -Dmain=darkhttpd -g -O2 -fsanitize=fuzzer,address ../darkhttpd.c -o fuzz_darkhttpd.o
-RUN clang++ -g -O2 -fsanitize=fuzzer,address fuzz_socket.cc fuzz_darkhttpd.o -o fuzz_socket
+#RUN clang -c -Dmain=darkhttpd -g -O2 -fsanitize=fuzzer,address ../darkhttpd.c -o #fuzz_darkhttpd.o
+#RUN clang++ -g -O2 -fsanitize=fuzzer,address fuzz_socket.cc fuzz_darkhttpd.o -o fuzz_socket
 
 
 
