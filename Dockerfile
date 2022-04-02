@@ -9,8 +9,8 @@ RUN apt-get update && \
 #RUN apk add --no-cache build-base
 WORKDIR /src
 COPY . .
-RUN make darkhttpd-static \
- && strip darkhttpd-static
+RUN make darkhttpd \
+ && strip darkhttpd
 
 #WORKDIR /src/devel
 
