@@ -9,13 +9,13 @@ RUN apt-get update && \
 #RUN apk add --no-cache build-base
 WORKDIR /src
 COPY . .
-#RUN make darkhttpd-static \
-# && strip darkhttpd-static
+RUN make darkhttpd-static \
+ && strip darkhttpd-static
 
-WORKDIR /src/devel
+#WORKDIR /src/devel
 
-RUN clang -c -Dmain=darkhttpd -g -O2 -fsanitize=fuzzer,address ../darkhttpd.c -o fuzz_darkhttpd.o
-RUN clang++ -g -O2 -fsanitize=fuzzer,address fuzz_socket.cc fuzz_darkhttpd.o -o fuzz_socket
+#RUN clang -c -Dmain=darkhttpd -g -O2 -fsanitize=fuzzer,address ../darkhttpd.c -o #fuzz_darkhttpd.o
+#RUN clang++ -g -O2 -fsanitize=fuzzer,address fuzz_socket.cc fuzz_darkhttpd.o -o fuzz_socket
 
 
 
@@ -30,7 +30,7 @@ RUN clang++ -g -O2 -fsanitize=fuzzer,address fuzz_socket.cc fuzz_darkhttpd.o -o 
 FROM ubuntu:20.04
 
 
-COPY --from=builder /src/devel/fuzz_socket /
+COPY --from=builder /src/darkhttpd /
 
 
 #make the binary

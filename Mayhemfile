@@ -5,7 +5,11 @@ project: darkhttpd
 target: fuzz_socket
 
 cmds:
-  - cmd: /fuzz_socket
+  - cmd: /darkhttpd /path/to/wwwroot 
+    network:
+      url: tcp://localhost:80
+      timeout: 2
+      client: false
 #
 
 
