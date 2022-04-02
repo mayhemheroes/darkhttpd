@@ -6,10 +6,6 @@ target: fuzz_socket
 
 cmds:
   - cmd: /fuzz_socket
-    network:
-      url: tcp://localhost:80
-      timeout: 2
-      client: false
 #
 
 
