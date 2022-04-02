@@ -1,0 +1,18 @@
+# Namespaced project name that the target belongs to
+project: darkhttpd
+
+# Target name (should be unique within the project)
+target: fuzz_socket
+
+cmds:
+  - cmd: /fuzz_socket
+
+#
+
+
+
+#project: mayhem-cmake-example
+#target: fuzzme
+#
+#cmds:
+#  - cmd: /fuzzme
