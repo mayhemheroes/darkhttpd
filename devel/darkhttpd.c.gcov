@@ -1,0 +1,2914 @@
+        -:    0:Source:../darkhttpd.c
+        -:    0:Graph:darkhttpd.gcno
+        -:    0:Data:darkhttpd.gcda
+        -:    0:Runs:12
+        -:    1:/* darkhttpd - a simple, single-threaded, static content webserver.
+        -:    2: * https://unix4lyfe.org/darkhttpd/
+        -:    3: * Copyright (c) 2003-2021 Emil Mikulic <emikulic@gmail.com>
+        -:    4: *
+        -:    5: * Permission to use, copy, modify, and distribute this software for any
+        -:    6: * purpose with or without fee is hereby granted, provided that the
+        -:    7: * above copyright notice and this permission notice appear in all
+        -:    8: * copies.
+        -:    9: *
+        -:   10: * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+        -:   11: * WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+        -:   12: * WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+        -:   13: * AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+        -:   14: * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+        -:   15: * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER
+        -:   16: * TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+        -:   17: * PERFORMANCE OF THIS SOFTWARE.
+        -:   18: */
+        -:   19:
+        -:   20:static const char
+        -:   21:    pkgname[]   = "darkhttpd/1.13.from.git",
+        -:   22:    copyright[] = "copyright (c) 2003-2021 Emil Mikulic";
+        -:   23:
+        -:   24:/* Possible build options: -DDEBUG -DNO_IPV6 */
+        -:   25:
+        -:   26:#ifndef NO_IPV6
+        -:   27:# define HAVE_INET6
+        -:   28:#endif
+        -:   29:
+        -:   30:#ifndef DEBUG
+        -:   31:# define NDEBUG
+        -:   32:static const int debug = 0;
+        -:   33:#else
+        -:   34:static const int debug = 1;
+        -:   35:#endif
+        -:   36:
+        -:   37:#ifdef __linux
+        -:   38:# define _GNU_SOURCE /* for strsignal() and vasprintf() */
+        -:   39:# define _FILE_OFFSET_BITS 64 /* stat() files bigger than 2GB */
+        -:   40:# include <sys/sendfile.h>
+        -:   41:#endif
+        -:   42:
+        -:   43:#ifdef __sun__
+        -:   44:# include <sys/sendfile.h>
+        -:   45:#endif
+        -:   46:
+        -:   47:#include <sys/time.h>
+        -:   48:#include <sys/types.h>
+        -:   49:#include <sys/socket.h>
+        -:   50:#include <sys/stat.h>
+        -:   51:#include <sys/resource.h>
+        -:   52:#include <sys/wait.h>
+        -:   53:#include <sys/param.h>
+        -:   54:#include <netinet/in.h>
+        -:   55:#include <netinet/tcp.h>
+        -:   56:#include <arpa/inet.h>
+        -:   57:#include <assert.h>
+        -:   58:#include <ctype.h>
+        -:   59:#include <dirent.h>
+        -:   60:#include <errno.h>
+        -:   61:#include <fcntl.h>
+        -:   62:#include <grp.h>
+        -:   63:#include <limits.h>
+        -:   64:#include <pwd.h>
+        -:   65:#include <signal.h>
+        -:   66:#include <stdarg.h>
+        -:   67:#include <stdio.h>
+        -:   68:#include <stdlib.h>
+        -:   69:#include <string.h>
+        -:   70:#include <syslog.h>
+        -:   71:#include <time.h>
+        -:   72:#include <unistd.h>
+        -:   73:
+        -:   74:#if defined(__has_feature)
+        -:   75:# if __has_feature(memory_sanitizer)
+        -:   76:#  include <sanitizer/msan_interface.h>
+        -:   77:# endif
+        -:   78:#endif
+        -:   79:
+        -:   80:#ifdef __sun__
+        -:   81:# ifndef INADDR_NONE
+        -:   82:#  define INADDR_NONE -1
+        -:   83:# endif
+        -:   84:#endif
+        -:   85:
+        -:   86:#ifndef MAXNAMLEN
+        -:   87:# ifdef NAME_MAX
+        -:   88:#  define MAXNAMLEN NAME_MAX
+        -:   89:# else
+        -:   90:#  define MAXNAMLEN   255
+        -:   91:# endif
+        -:   92:#endif
+        -:   93:
+        -:   94:#if defined(O_EXCL) && !defined(O_EXLOCK)
+        -:   95:# define O_EXLOCK O_EXCL
+        -:   96:#endif
+        -:   97:
+        -:   98:#ifndef __printflike
+        -:   99:# ifdef __GNUC__
+        -:  100:/* [->] borrowed from FreeBSD's src/sys/sys/cdefs.h,v 1.102.2.2.2.1 */
+        -:  101:#  define __printflike(fmtarg, firstvararg) \
+        -:  102:             __attribute__((__format__(__printf__, fmtarg, firstvararg)))
+        -:  103:/* [<-] */
+        -:  104:# else
+        -:  105:#  define __printflike(fmtarg, firstvararg)
+        -:  106:# endif
+        -:  107:#endif
+        -:  108:
+        -:  109:#if defined(__GNUC__) || defined(__INTEL_COMPILER)
+        -:  110:# define unused __attribute__((__unused__))
+        -:  111:#else
+        -:  112:# define unused
+        -:  113:#endif
+        -:  114:
+        -:  115:/* [->] borrowed from FreeBSD's src/sys/sys/systm.h,v 1.276.2.7.4.1 */
+        -:  116:#ifndef CTASSERT                /* Allow lint to override */
+        -:  117:# define CTASSERT(x)             _CTASSERT(x, __LINE__)
+        -:  118:# define _CTASSERT(x, y)         __CTASSERT(x, y)
+        -:  119:# define __CTASSERT(x, y)        typedef char __assert ## y[(x) ? 1 : -1]
+        -:  120:#endif
+        -:  121:/* [<-] */
+        -:  122:
+        -:  123:CTASSERT(sizeof(unsigned long long) >= sizeof(off_t));
+        -:  124:#define llu(x) ((unsigned long long)(x))
+        -:  125:
+        -:  126:#if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__linux)
+        -:  127:# include <err.h>
+        -:  128:#else
+        -:  129:/* err - prints "error: format: strerror(errno)" to stderr and exit()s with
+        -:  130: * the given code.
+        -:  131: */
+        -:  132:static void err(const int code, const char *format, ...) __printflike(2, 3);
+        -:  133:static void err(const int code, const char *format, ...) {
+        -:  134:    va_list va;
+        -:  135:
+        -:  136:    va_start(va, format);
+        -:  137:    fprintf(stderr, "error: ");
+        -:  138:    vfprintf(stderr, format, va);
+        -:  139:    fprintf(stderr, ": %s\n", strerror(errno));
+        -:  140:    va_end(va);
+        -:  141:    exit(code);
+        -:  142:}
+        -:  143:
+        -:  144:/* errx - err() without the strerror */
+        -:  145:static void errx(const int code, const char *format, ...) __printflike(2, 3);
+        -:  146:static void errx(const int code, const char *format, ...) {
+        -:  147:    va_list va;
+        -:  148:
+        -:  149:    va_start(va, format);
+        -:  150:    fprintf(stderr, "error: ");
+        -:  151:    vfprintf(stderr, format, va);
+        -:  152:    fprintf(stderr, "\n");
+        -:  153:    va_end(va);
+        -:  154:    exit(code);
+        -:  155:}
+        -:  156:
+        -:  157:/* warn - err() without the exit */
+        -:  158:static void warn(const char *format, ...) __printflike(1, 2);
+        -:  159:static void warn(const char *format, ...) {
+        -:  160:    va_list va;
+        -:  161:
+        -:  162:    va_start(va, format);
+        -:  163:    fprintf(stderr, "warning: ");
+        -:  164:    vfprintf(stderr, format, va);
+        -:  165:    fprintf(stderr, ": %s\n", strerror(errno));
+        -:  166:    va_end(va);
+        -:  167:}
+        -:  168:#endif
+        -:  169:
+        -:  170:/* [->] LIST_* macros taken from FreeBSD's src/sys/sys/queue.h,v 1.56
+        -:  171: * Copyright (c) 1991, 1993
+        -:  172: *      The Regents of the University of California.  All rights reserved.
+        -:  173: *
+        -:  174: * Under a BSD license.
+        -:  175: */
+        -:  176:#define LIST_HEAD(name, type)                                           \
+        -:  177:struct name {                                                           \
+        -:  178:        struct type *lh_first;  /* first element */                     \
+        -:  179:}
+        -:  180:
+        -:  181:#define LIST_HEAD_INITIALIZER(head)                                     \
+        -:  182:        { NULL }
+        -:  183:
+        -:  184:#define LIST_ENTRY(type)                                                \
+        -:  185:struct {                                                                \
+        -:  186:        struct type *le_next;   /* next element */                      \
+        -:  187:        struct type **le_prev;  /* address of previous next element */  \
+        -:  188:}
+        -:  189:
+        -:  190:#define LIST_FIRST(head)        ((head)->lh_first)
+        -:  191:
+        -:  192:#define LIST_FOREACH_SAFE(var, head, field, tvar)                       \
+        -:  193:    for ((var) = LIST_FIRST((head));                                    \
+        -:  194:        (var) && ((tvar) = LIST_NEXT((var), field), 1);                 \
+        -:  195:        (var) = (tvar))
+        -:  196:
+        -:  197:#define LIST_INSERT_HEAD(head, elm, field) do {                         \
+        -:  198:        if ((LIST_NEXT((elm), field) = LIST_FIRST((head))) != NULL)     \
+        -:  199:                LIST_FIRST((head))->field.le_prev = &LIST_NEXT((elm), field);\
+        -:  200:        LIST_FIRST((head)) = (elm);                                     \
+        -:  201:        (elm)->field.le_prev = &LIST_FIRST((head));                     \
+        -:  202:} while (0)
+        -:  203:
+        -:  204:#define LIST_NEXT(elm, field)   ((elm)->field.le_next)
+        -:  205:
+        -:  206:#define LIST_REMOVE(elm, field) do {                                    \
+        -:  207:        if (LIST_NEXT((elm), field) != NULL)                            \
+        -:  208:                LIST_NEXT((elm), field)->field.le_prev =                \
+        -:  209:                    (elm)->field.le_prev;                               \
+        -:  210:        *(elm)->field.le_prev = LIST_NEXT((elm), field);                \
+        -:  211:} while (0)
+        -:  212:/* [<-] */
+        -:  213:
+        -:  214:static LIST_HEAD(conn_list_head, connection) connlist =
+        -:  215:    LIST_HEAD_INITIALIZER(conn_list_head);
+        -:  216:
+        -:  217:struct connection {
+        -:  218:    LIST_ENTRY(connection) entries;
+        -:  219:
+        -:  220:    int socket;
+        -:  221:#ifdef HAVE_INET6
+        -:  222:    struct in6_addr client;
+        -:  223:#else
+        -:  224:    in_addr_t client;
+        -:  225:#endif
+        -:  226:    time_t last_active;
+        -:  227:    enum {
+        -:  228:        RECV_REQUEST,   /* receiving request */
+        -:  229:        SEND_HEADER,    /* sending generated header */
+        -:  230:        SEND_REPLY,     /* sending reply */
+        -:  231:        DONE            /* connection closed, need to remove from queue */
+        -:  232:    } state;
+        -:  233:
+        -:  234:    /* char request[request_length+1] is null-terminated */
+        -:  235:    char *request;
+        -:  236:    size_t request_length;
+        -:  237:
+        -:  238:    /* request fields */
+        -:  239:    char *method, *url, *referer, *user_agent, *authorization;
+        -:  240:    off_t range_begin, range_end;
+        -:  241:    off_t range_begin_given, range_end_given;
+        -:  242:
+        -:  243:    char *header;
+        -:  244:    size_t header_length, header_sent;
+        -:  245:    int header_dont_free, header_only, http_code, conn_close;
+        -:  246:
+        -:  247:    enum { REPLY_GENERATED, REPLY_FROMFILE } reply_type;
+        -:  248:    char *reply;
+        -:  249:    int reply_dont_free;
+        -:  250:    int reply_fd;
+        -:  251:    off_t reply_start, reply_length, reply_sent,
+        -:  252:          total_sent; /* header + body = total, for logging */
+        -:  253:};
+        -:  254:
+        -:  255:struct forward_mapping {
+        -:  256:    const char *host, *target_url; /* These point at argv. */
+        -:  257:};
+        -:  258:
+        -:  259:static struct forward_mapping *forward_map = NULL;
+        -:  260:static size_t forward_map_size = 0;
+        -:  261:static const char *forward_all_url = NULL;
+        -:  262:
+        -:  263:static int forward_to_https = 0;
+        -:  264:
+        -:  265:struct mime_mapping {
+        -:  266:    char *extension, *mimetype;
+        -:  267:};
+        -:  268:
+        -:  269:static struct mime_mapping *mime_map = NULL;
+        -:  270:static size_t mime_map_size = 0;
+        -:  271:static size_t longest_ext = 0;
+        -:  272:
+        -:  273:/* If a connection is idle for timeout_secs or more, it gets closed and
+        -:  274: * removed from the connlist.
+        -:  275: */
+        -:  276:static int timeout_secs = 30;
+        -:  277:static char *keep_alive_field = NULL;
+        -:  278:
+        -:  279:/* Time is cached in the event loop to avoid making an excessive number of
+        -:  280: * gettimeofday() calls.
+        -:  281: */
+        -:  282:static time_t now;
+        -:  283:
+        -:  284:/* To prevent a malformed request from eating up too much memory, die once the
+        -:  285: * request exceeds this many bytes:
+        -:  286: */
+        -:  287:#define MAX_REQUEST_LENGTH 4000
+        -:  288:
+        -:  289:/* Defaults can be overridden on the command-line */
+        -:  290:static const char *bindaddr;
+        -:  291:static uint16_t bindport = 8080;    /* or 80 if running as root */
+        -:  292:static int max_connections = -1;    /* kern.ipc.somaxconn */
+        -:  293:static const char *index_name = "index.html";
+        -:  294:static int no_listing = 0;
+        -:  295:
+        -:  296:static int sockin = -1;             /* socket to accept connections from */
+        -:  297:#ifdef HAVE_INET6
+        -:  298:static int inet6 = 0;               /* whether the socket uses inet6 */
+        -:  299:#endif
+        -:  300:static char *wwwroot = NULL;        /* a path name */
+        -:  301:static char *logfile_name = NULL;   /* NULL = no logging */
+        -:  302:static FILE *logfile = NULL;
+        -:  303:static char *pidfile_name = NULL;   /* NULL = no pidfile */
+        -:  304:static int want_chroot = 0, want_daemon = 0, want_accf = 0,
+        -:  305:           want_keepalive = 1, want_server_id = 1;
+        -:  306:static char *server_hdr = NULL;
+        -:  307:static char *auth_key = NULL;
+        -:  308:static uint64_t num_requests = 0, total_in = 0, total_out = 0;
+        -:  309:static int accepting = 1;           /* set to 0 to stop accept()ing */
+        -:  310:static int syslog_enabled = 0;
+        -:  311:static volatile int running = 1; /* signal handler sets this to false */
+        -:  312:
+        -:  313:#define INVALID_UID ((uid_t) -1)
+        -:  314:#define INVALID_GID ((gid_t) -1)
+        -:  315:
+        -:  316:static uid_t drop_uid = INVALID_UID;
+        -:  317:static gid_t drop_gid = INVALID_GID;
+        -:  318:
+        -:  319:/* Default mimetype mappings - make sure this array is NULL terminated. */
+        -:  320:static const char *default_extension_map[] = {
+        -:  321:    "application/ogg"      " ogg",
+        -:  322:    "application/pdf"      " pdf",
+        -:  323:    "application/wasm"     " wasm",
+        -:  324:    "application/xml"      " xsl xml",
+        -:  325:    "application/xml-dtd"  " dtd",
+        -:  326:    "application/xslt+xml" " xslt",
+        -:  327:    "application/zip"      " zip",
+        -:  328:    "audio/mpeg"           " mp2 mp3 mpga",
+        -:  329:    "image/gif"            " gif",
+        -:  330:    "image/jpeg"           " jpeg jpe jpg",
+        -:  331:    "image/png"            " png",
+        -:  332:    "image/svg+xml"        " svg",
+        -:  333:    "text/css"             " css",
+        -:  334:    "text/html"            " html htm",
+        -:  335:    "text/javascript"      " js",
+        -:  336:    "text/plain"           " txt asc",
+        -:  337:    "video/mpeg"           " mpeg mpe mpg",
+        -:  338:    "video/quicktime"      " qt mov",
+        -:  339:    "video/x-msvideo"      " avi",
+        -:  340:    "video/mp4"            " mp4",
+        -:  341:    NULL
+        -:  342:};
+        -:  343:
+        -:  344:static const char octet_stream[] = "application/octet-stream";
+        -:  345:static const char *default_mimetype = octet_stream;
+        -:  346:
+        -:  347:/* Prototypes. */
+        -:  348:static void poll_recv_request(struct connection *conn);
+        -:  349:static void poll_send_header(struct connection *conn);
+        -:  350:static void poll_send_reply(struct connection *conn);
+        -:  351:
+        -:  352:/* close() that dies on error.  */
+      220:  353:static void xclose(const int fd) {
+      220:  354:    if (close(fd) == -1)
+    #####:  355:        err(1, "close()");
+      220:  356:}
+        -:  357:
+        -:  358:/* malloc that dies if it can't allocate. */
+     3256:  359:static void *xmalloc(const size_t size) {
+     3256:  360:    void *ptr = malloc(size);
+     3256:  361:    if (ptr == NULL)
+    #####:  362:        errx(1, "can't allocate %zu bytes", size);
+     3256:  363:    return ptr;
+        -:  364:}
+        -:  365:
+        -:  366:/* realloc() that dies if it can't reallocate. */
+     2121:  367:static void *xrealloc(void *original, const size_t size) {
+     2121:  368:    void *ptr = realloc(original, size);
+     2121:  369:    if (ptr == NULL)
+    #####:  370:        errx(1, "can't reallocate %zu bytes", size);
+     2121:  371:    return ptr;
+        -:  372:}
+        -:  373:
+        -:  374:/* strdup() that dies if it can't allocate.
+        -:  375: * Implement this ourselves since regular strdup() isn't C89.
+        -:  376: */
+      857:  377:static char *xstrdup(const char *src) {
+     857*:  378:    size_t len = strlen(src) + 1;
+      857:  379:    char *dest = xmalloc(len);
+     857*:  380:    memcpy(dest, src, len);
+      857:  381:    return dest;
+        -:  382:}
+        -:  383:
+        -:  384:#ifdef __sun /* unimpressed by Solaris */
+        -:  385:static int vasprintf(char **strp, const char *fmt, va_list ap) {
+        -:  386:    char tmp;
+        -:  387:    int result = vsnprintf(&tmp, 1, fmt, ap);
+        -:  388:    *strp = xmalloc(result+1);
+        -:  389:    result = vsnprintf(*strp, result+1, fmt, ap);
+        -:  390:    return result;
+        -:  391:}
+        -:  392:#endif
+        -:  393:
+        -:  394:/* vasprintf() that dies if it fails. */
+        -:  395:static unsigned int xvasprintf(char **ret, const char *format, va_list ap)
+        -:  396:    __printflike(2,0);
+      442:  397:static unsigned int xvasprintf(char **ret, const char *format, va_list ap) {
+      442:  398:    int len = vasprintf(ret, format, ap);
+      442:  399:    if (ret == NULL || len == -1)
+    #####:  400:        errx(1, "out of memory in vasprintf()");
+      442:  401:    return (unsigned int)len;
+        -:  402:}
+        -:  403:
+        -:  404:/* asprintf() that dies if it fails. */
+        -:  405:static unsigned int xasprintf(char **ret, const char *format, ...)
+        -:  406:    __printflike(2,3);
+      376:  407:static unsigned int xasprintf(char **ret, const char *format, ...) {
+      376:  408:    va_list va;
+      376:  409:    unsigned int len;
+        -:  410:
+      376:  411:    va_start(va, format);
+      376:  412:    len = xvasprintf(ret, format, va);
+      376:  413:    va_end(va);
+      376:  414:    return len;
+        -:  415:}
+        -:  416:
+        -:  417:/* Append buffer code.  A somewhat efficient string buffer with pool-based
+        -:  418: * reallocation.
+        -:  419: */
+        -:  420:#ifndef APBUF_INIT
+        -:  421:# define APBUF_INIT 4096
+        -:  422:#endif
+        -:  423:#define APBUF_GROW APBUF_INIT
+        -:  424:struct apbuf {
+        -:  425:    size_t length, pool;
+        -:  426:    char *str;
+        -:  427:};
+        -:  428:
+       28:  429:static struct apbuf *make_apbuf(void) {
+       28:  430:    struct apbuf *buf = xmalloc(sizeof(struct apbuf));
+       28:  431:    buf->length = 0;
+       28:  432:    buf->pool = APBUF_INIT;
+       28:  433:    buf->str = xmalloc(buf->pool);
+       28:  434:    return buf;
+        -:  435:}
+        -:  436:
+        -:  437:/* Append s (of length len) to buf. */
+     1612:  438:static void appendl(struct apbuf *buf, const char *s, const size_t len) {
+     1612:  439:    size_t need = buf->length + len;
+     1612:  440:    if (buf->pool < need) {
+        -:  441:        /* pool has dried up */
+    11882:  442:        while (buf->pool < need)
+    10272:  443:            buf->pool += APBUF_GROW;
+     1610:  444:        buf->str = xrealloc(buf->str, buf->pool);
+        -:  445:    }
+    1612*:  446:    memcpy(buf->str + buf->length, s, len);
+     1612:  447:    buf->length += len;
+     1612:  448:}
+        -:  449:
+        -:  450:#ifdef __GNUC__
+        -:  451:#define append(buf, s) appendl(buf, s, \
+        -:  452:    (__builtin_constant_p(s) ? sizeof(s)-1 : strlen(s)) )
+        -:  453:#else
+        -:  454:static void append(struct apbuf *buf, const char *s) {
+        -:  455:    appendl(buf, s, strlen(s));
+        -:  456:}
+        -:  457:#endif
+        -:  458:
+        -:  459:static void appendf(struct apbuf *buf, const char *format, ...)
+        -:  460:    __printflike(2, 3);
+        6:  461:static void appendf(struct apbuf *buf, const char *format, ...) {
+        6:  462:    char *tmp;
+        6:  463:    va_list va;
+        6:  464:    size_t len;
+        -:  465:
+        6:  466:    va_start(va, format);
+        6:  467:    len = xvasprintf(&tmp, format, va);
+        6:  468:    va_end(va);
+        6:  469:    appendl(buf, tmp, len);
+        6:  470:    free(tmp);
+        6:  471:}
+        -:  472:
+        -:  473:/* Make the specified socket non-blocking. */
+      145:  474:static void nonblock_socket(const int sock) {
+      145:  475:    int flags = fcntl(sock, F_GETFL);
+        -:  476:
+      145:  477:    if (flags == -1)
+    #####:  478:        err(1, "fcntl(F_GETFL)");
+      145:  479:    flags |= O_NONBLOCK;
+      145:  480:    if (fcntl(sock, F_SETFL, flags) == -1)
+    #####:  481:        err(1, "fcntl() to set O_NONBLOCK");
+      145:  482:}
+        -:  483:
+        -:  484:/* Split string out of src with range [left:right-1] */
+     1436:  485:static char *split_string(const char *src,
+        -:  486:        const size_t left, const size_t right) {
+     1436:  487:    char *dest;
+    1436*:  488:    assert(left <= right);
+    1436*:  489:    assert(left < strlen(src));   /* [left means must be smaller */
+    1436*:  490:    assert(right <= strlen(src)); /* right) means can be equal or smaller */
+        -:  491:
+     1436:  492:    dest = xmalloc(right - left + 1);
+    1436*:  493:    memcpy(dest, src+left, right-left);
+     1436:  494:    dest[right-left] = '\0';
+     1436:  495:    return dest;
+        -:  496:}
+        -:  497:
+        -:  498:/* Resolve /./ and /../ in a URL, in-place.
+        -:  499: * Returns NULL if the URL is invalid/unsafe, or the original buffer if
+        -:  500: * successful.
+        -:  501: */
+      142:  502:static char *make_safe_url(char *const url) {
+      142:  503:    char *src = url, *dst;
+        -:  504:    #define ends(c) ((c) == '/' || (c) == '\0')
+        -:  505:
+        -:  506:    /* URLs not starting with a slash are illegal. */
+      142:  507:    if (*src != '/')
+        -:  508:        return NULL;
+        -:  509:
+        -:  510:    /* Fast case: skip until first double-slash or dot-dir. */
+     1087:  511:    for ( ; *src; ++src) {
+      989:  512:        if (*src == '/') {
+      163:  513:            if (src[1] == '/')
+        -:  514:                break;
+      151:  515:            else if (src[1] == '.') {
+       26:  516:                if (ends(src[2]))
+        -:  517:                    break;
+       18:  518:                else if (src[2] == '.' && ends(src[3]))
+        -:  519:                    break;
+        -:  520:            }
+        -:  521:        }
+        -:  522:    }
+        -:  523:
+        -:  524:    /* Copy to dst, while collapsing multi-slashes and handling dot-dirs. */
+      136:  525:    dst = src;
+      318:  526:    while (*src) {
+      194:  527:        if (*src != '/')
+       66:  528:            *dst++ = *src++;
+      128:  529:        else if (*++src == '/')
+        -:  530:            ;
+       86:  531:        else if (*src != '.')
+       26:  532:            *dst++ = '/';
+       60:  533:        else if (ends(src[1]))
+        -:  534:            /* Ignore single-dot component. */
+       18:  535:            ++src;
+       42:  536:        else if (src[1] == '.' && ends(src[2])) {
+        -:  537:            /* Double-dot component. */
+       36:  538:            src += 2;
+       36:  539:            if (dst == url)
+        -:  540:                return NULL; /* Illegal URL */
+        -:  541:            else
+        -:  542:                /* Backtrack to previous slash. */
+       96:  543:                while (*--dst != '/' && dst > url);
+        -:  544:        }
+        -:  545:        else
+        6:  546:            *dst++ = '/';
+        -:  547:    }
+        -:  548:
+      124:  549:    if (dst == url)
+        6:  550:        ++dst;
+      124:  551:    *dst = '\0';
+      124:  552:    return url;
+        -:  553:    #undef ends
+        -:  554:}
+        -:  555:
+        3:  556:static void add_forward_mapping(const char * const host,
+        -:  557:                                const char * const target_url) {
+        3:  558:    forward_map_size++;
+        3:  559:    forward_map = xrealloc(forward_map,
+        -:  560:                           sizeof(*forward_map) * forward_map_size);
+        3:  561:    forward_map[forward_map_size - 1].host = host;
+        3:  562:    forward_map[forward_map_size - 1].target_url = target_url;
+        3:  563:}
+        -:  564:
+        -:  565:/* Associates an extension with a mimetype in the mime_map.  Entries are in
+        -:  566: * unsorted order.  Makes copies of extension and mimetype strings.
+        -:  567: */
+      364:  568:static void add_mime_mapping(const char *extension, const char *mimetype) {
+      364:  569:    size_t i;
+     364*:  570:    assert(strlen(extension) > 0);
+     364*:  571:    assert(strlen(mimetype) > 0);
+        -:  572:
+        -:  573:    /* update longest_ext */
+     364*:  574:    i = strlen(extension);
+      364:  575:    if (i > longest_ext)
+       24:  576:        longest_ext = i;
+        -:  577:
+        -:  578:    /* look through list and replace an existing entry if possible */
+     5708:  579:    for (i = 0; i < mime_map_size; i++)
+    5345*:  580:        if (strcmp(mime_map[i].extension, extension) == 0) {
+        1:  581:            free(mime_map[i].mimetype);
+        1:  582:            mime_map[i].mimetype = xstrdup(mimetype);
+        1:  583:            return;
+        -:  584:        }
+        -:  585:
+        -:  586:    /* no replacement - add a new entry */
+      363:  587:    mime_map_size++;
+      363:  588:    mime_map = xrealloc(mime_map,
+        -:  589:        sizeof(struct mime_mapping) * mime_map_size);
+      363:  590:    mime_map[mime_map_size - 1].extension = xstrdup(extension);
+      363:  591:    mime_map[mime_map_size - 1].mimetype = xstrdup(mimetype);
+        -:  592:}
+        -:  593:
+        -:  594:/* qsort() the mime_map.  The map must be sorted before it can be
+        -:  595: * binary-searched.
+        -:  596: */
+      974:  597:static int mime_mapping_cmp(const void *a, const void *b) {
+     974*:  598:    return strcmp(((const struct mime_mapping *)a)->extension,
+      974:  599:                  ((const struct mime_mapping *)b)->extension);
+        -:  600:}
+        -:  601:
+        9:  602:static void sort_mime_map(void) {
+       9*:  603:    qsort(mime_map, mime_map_size, sizeof(struct mime_mapping),
+        -:  604:        mime_mapping_cmp);
+        9:  605:}
+        -:  606:
+        -:  607:/* Parses a mime.types line and adds the parsed data to the mime_map. */
+      245:  608:static void parse_mimetype_line(const char *line) {
+      245:  609:    unsigned int pad, bound1, lbound, rbound;
+        -:  610:
+        -:  611:    /* parse mimetype */
+     245*:  612:    for (pad=0; (line[pad] == ' ') || (line[pad] == '\t'); pad++)
+    #####:  613:        ;
+      245:  614:    if (line[pad] == '\0' || /* empty line */
+        -:  615:        line[pad] == '#')    /* comment */
+        -:  616:        return;
+        -:  617:
+      244:  618:    for (bound1=pad+1;
+     3137:  619:        (line[bound1] != ' ') &&
+        -:  620:        (line[bound1] != '\t');
+     2893:  621:        bound1++) {
+     2893:  622:        if (line[bound1] == '\0')
+        -:  623:            return; /* malformed line */
+        -:  624:    }
+        -:  625:
+        -:  626:    lbound = bound1;
+      120:  627:    for (;;) {
+        -:  628:        char *mimetype, *extension;
+        -:  629:
+        -:  630:        /* find beginning of extension */
+      610:  631:        for (; (line[lbound] == ' ') || (line[lbound] == '\t'); lbound++)
+      246:  632:            ;
+      364:  633:        if (line[lbound] == '\0')
+        -:  634:            return; /* end of line */
+        -:  635:
+        -:  636:        /* find end of extension */
+     1504:  637:        for (rbound = lbound;
+     1504:  638:            line[rbound] != ' ' &&
+     1384:  639:            line[rbound] != '\t' &&
+     1384:  640:            line[rbound] != '\0';
+     1140:  641:            rbound++)
+     1140:  642:            ;
+        -:  643:
+      364:  644:        mimetype = split_string(line, pad, bound1);
+      364:  645:        extension = split_string(line, lbound, rbound);
+      364:  646:        add_mime_mapping(extension, mimetype);
+      364:  647:        free(mimetype);
+      364:  648:        free(extension);
+        -:  649:
+      364:  650:        if (line[rbound] == '\0')
+        -:  651:            return; /* end of line */
+        -:  652:        else
+      120:  653:            lbound = rbound + 1;
+        -:  654:    }
+        -:  655:}
+        -:  656:
+        -:  657:/* Adds contents of default_extension_map[] to mime_map list.  The array must
+        -:  658: * be NULL terminated.
+        -:  659: */
+        -:  660:static void parse_default_extension_map(void) {
+        -:  661:    size_t i;
+        -:  662:
+      492:  663:    for (i = 0; default_extension_map[i] != NULL; i++)
+      240:  664:        parse_mimetype_line(default_extension_map[i]);
+        -:  665:}
+        -:  666:
+        -:  667:/* read a line from fp, return its contents in a dynamically allocated buffer,
+        -:  668: * not including the line ending.
+        -:  669: *
+        -:  670: * Handles CR, CRLF and LF line endings, as well as NOEOL correctly.  If
+        -:  671: * already at EOF, returns NULL.  Will err() or errx() in case of
+        -:  672: * unexpected file error or running out of memory.
+        -:  673: */
+        6:  674:static char *read_line(FILE *fp) {
+        6:  675:    char *buf;
+        6:  676:    long startpos, endpos;
+        6:  677:    size_t linelen, numread;
+        6:  678:    int c;
+        -:  679:
+        6:  680:    startpos = ftell(fp);
+        6:  681:    if (startpos == -1)
+    #####:  682:        err(1, "ftell()");
+        -:  683:
+        -:  684:    /* find end of line (or file) */
+        -:  685:    linelen = 0;
+      186:  686:    for (;;) {
+       96:  687:        c = fgetc(fp);
+       96:  688:        if ((c == EOF) || (c == (int)'\n') || (c == (int)'\r'))
+        -:  689:            break;
+       90:  690:        linelen++;
+        -:  691:    }
+        -:  692:
+        -:  693:    /* return NULL on EOF (and empty line) */
+        6:  694:    if (linelen == 0 && c == EOF)
+        -:  695:        return NULL;
+        -:  696:
+        5:  697:    endpos = ftell(fp);
+        5:  698:    if (endpos == -1)
+    #####:  699:        err(1, "ftell()");
+        -:  700:
+        -:  701:    /* skip CRLF */
+        5:  702:    if ((c == (int)'\r') && (fgetc(fp) == (int)'\n'))
+        1:  703:        endpos++;
+        -:  704:
+        5:  705:    buf = xmalloc(linelen + 1);
+        -:  706:
+        -:  707:    /* rewind file to where the line stared and load the line */
+        5:  708:    if (fseek(fp, startpos, SEEK_SET) == -1)
+    #####:  709:        err(1, "fseek()");
+        5:  710:    numread = fread(buf, 1, linelen, fp);
+        5:  711:    if (numread != linelen)
+    #####:  712:        errx(1, "fread() %zu bytes, expecting %zu bytes", numread, linelen);
+        -:  713:
+        -:  714:    /* terminate buffer */
+        5:  715:    buf[linelen] = 0;
+        -:  716:
+        -:  717:    /* advance file pointer over the endline */
+        5:  718:    if (fseek(fp, endpos, SEEK_SET) == -1)
+    #####:  719:        err(1, "fseek()");
+        -:  720:
+        -:  721:    return buf;
+        -:  722:}
+        -:  723:
+        -:  724:/* ---------------------------------------------------------------------------
+        -:  725: * Adds contents of specified file to mime_map list.
+        -:  726: */
+        1:  727:static void parse_extension_map_file(const char *filename) {
+        1:  728:    char *buf;
+        1:  729:    FILE *fp = fopen(filename, "rb");
+        -:  730:
+        1:  731:    if (fp == NULL)
+    #####:  732:        err(1, "fopen(\"%s\")", filename);
+        6:  733:    while ((buf = read_line(fp)) != NULL) {
+        5:  734:        parse_mimetype_line(buf);
+        5:  735:        free(buf);
+        -:  736:    }
+        1:  737:    fclose(fp);
+        1:  738:}
+        -:  739:
+        -:  740:/* Uses the mime_map to determine a Content-Type: for a requested URL.  This
+        -:  741: * bsearch()es mime_map, so make sure it's sorted first.
+        -:  742: */
+      381:  743:static int mime_mapping_cmp_str(const void *a, const void *b) {
+     381*:  744:    return strcmp((const char *)a,
+      381:  745:                 ((const struct mime_mapping *)b)->extension);
+        -:  746:}
+        -:  747:
+       84:  748:static const char *url_content_type(const char *url) {
+      84*:  749:    int period, urllen = (int)strlen(url);
+        -:  750:
+       84:  751:    for (period = urllen - 1;
+      397:  752:         (period > 0) && (url[period] != '.') &&
+      319:  753:         (urllen - period - 1 <= (int)longest_ext);
+      313:  754:         period--)
+      313:  755:            ;
+        -:  756:
+       84:  757:    if ((period >= 0) && (url[period] == '.')) {
+       77:  758:        struct mime_mapping *result =
+      77*:  759:            bsearch((url + period + 1), mime_map, mime_map_size,
+        -:  760:                    sizeof(struct mime_mapping), mime_mapping_cmp_str);
+       77:  761:        if (result != NULL) {
+      70*:  762:            assert(strcmp(url + period + 1, result->extension) == 0);
+       70:  763:            return result->mimetype;
+        -:  764:        }
+        -:  765:    }
+        -:  766:    /* else no period found in the string */
+       14:  767:    return default_mimetype;
+        -:  768:}
+        -:  769:
+      154:  770:static const char *get_address_text(const void *addr) {
+        -:  771:#ifdef HAVE_INET6
+      154:  772:    if (inet6) {
+    #####:  773:        static char text_addr[INET6_ADDRSTRLEN];
+    #####:  774:        inet_ntop(AF_INET6, (const struct in6_addr *)addr, text_addr,
+        -:  775:                  INET6_ADDRSTRLEN);
+    #####:  776:        return text_addr;
+        -:  777:    } else
+        -:  778:#endif
+        -:  779:    {
+      154:  780:        return inet_ntoa(*(const struct in_addr *)addr);
+        -:  781:    }
+        -:  782:}
+        -:  783:
+        -:  784:/* Initialize the sockin global.  This is the socket that we accept
+        -:  785: * connections from.
+        -:  786: */
+        9:  787:static void init_sockin(void) {
+        9:  788:    struct sockaddr_in addrin;
+        -:  789:#ifdef HAVE_INET6
+        9:  790:    struct sockaddr_in6 addrin6;
+        -:  791:#endif
+        9:  792:    socklen_t addrin_len;
+        9:  793:    int sockopt;
+        -:  794:
+        -:  795:#ifdef HAVE_INET6
+        9:  796:    if (inet6) {
+    #####:  797:        memset(&addrin6, 0, sizeof(addrin6));
+    #####:  798:        if (inet_pton(AF_INET6, bindaddr ? bindaddr : "::",
+        -:  799:                      &addrin6.sin6_addr) == -1) {
+    #####:  800:            errx(1, "malformed --addr argument");
+        -:  801:        }
+    #####:  802:        sockin = socket(PF_INET6, SOCK_STREAM, 0);
+        -:  803:    } else
+        -:  804:#endif
+        -:  805:    {
+        9:  806:        memset(&addrin, 0, sizeof(addrin));
+       9*:  807:        addrin.sin_addr.s_addr = bindaddr ? inet_addr(bindaddr) : INADDR_ANY;
+        9:  808:        if (addrin.sin_addr.s_addr == (in_addr_t)INADDR_NONE)
+    #####:  809:            errx(1, "malformed --addr argument");
+        9:  810:        sockin = socket(PF_INET, SOCK_STREAM, 0);
+        -:  811:    }
+        -:  812:
+        9:  813:    if (sockin == -1)
+    #####:  814:        err(1, "socket()");
+        -:  815:
+        -:  816:    /* reuse address */
+        9:  817:    sockopt = 1;
+        9:  818:    if (setsockopt(sockin, SOL_SOCKET, SO_REUSEADDR,
+        -:  819:                   &sockopt, sizeof(sockopt)) == -1)
+    #####:  820:        err(1, "setsockopt(SO_REUSEADDR)");
+        -:  821:
+        -:  822:    /* disable Nagle since we buffer everything ourselves */
+        9:  823:    sockopt = 1;
+        9:  824:    if (setsockopt(sockin, IPPROTO_TCP, TCP_NODELAY,
+        -:  825:            &sockopt, sizeof(sockopt)) == -1)
+    #####:  826:        err(1, "setsockopt(TCP_NODELAY)");
+        -:  827:
+        -:  828:#ifdef TORTURE
+        -:  829:    /* torture: cripple the kernel-side send buffer so we can only squeeze out
+        -:  830:     * one byte at a time (this is for debugging)
+        -:  831:     */
+        -:  832:    sockopt = 1;
+        -:  833:    if (setsockopt(sockin, SOL_SOCKET, SO_SNDBUF,
+        -:  834:            &sockopt, sizeof(sockopt)) == -1)
+        -:  835:        err(1, "setsockopt(SO_SNDBUF)");
+        -:  836:#endif
+        -:  837:
+        -:  838:    /* bind socket */
+        -:  839:#ifdef HAVE_INET6
+        9:  840:    if (inet6) {
+    #####:  841:        addrin6.sin6_family = AF_INET6;
+    #####:  842:        addrin6.sin6_port = htons(bindport);
+    #####:  843:        if (bind(sockin, (struct sockaddr *)&addrin6,
+        -:  844:                 sizeof(struct sockaddr_in6)) == -1)
+    #####:  845:            err(1, "bind(port %u)", bindport);
+        -:  846:
+    #####:  847:        addrin_len = sizeof(addrin6);
+    #####:  848:        if (getsockname(sockin, (struct sockaddr *)&addrin6, &addrin_len) == -1)
+    #####:  849:            err(1, "getsockname()");
+    #####:  850:        printf("listening on: http://[%s]:%u/\n",
+        -:  851:            get_address_text(&addrin6.sin6_addr), bindport);
+        -:  852:    } else
+        -:  853:#endif
+        -:  854:    {
+        9:  855:        addrin.sin_family = (u_char)PF_INET;
+        9:  856:        addrin.sin_port = htons(bindport);
+        9:  857:        if (bind(sockin, (struct sockaddr *)&addrin,
+        -:  858:                 sizeof(struct sockaddr_in)) == -1)
+    #####:  859:            err(1, "bind(port %u)", bindport);
+        9:  860:        addrin_len = sizeof(addrin);
+        9:  861:        if (getsockname(sockin, (struct sockaddr *)&addrin, &addrin_len) == -1)
+    #####:  862:            err(1, "getsockname()");
+        9:  863:        printf("listening on: http://%s:%u/\n",
+        -:  864:            get_address_text(&addrin.sin_addr), bindport);
+        -:  865:    }
+        -:  866:
+        -:  867:    /* listen on socket */
+        9:  868:    if (listen(sockin, max_connections) == -1)
+    #####:  869:        err(1, "listen()");
+        -:  870:
+        -:  871:    /* enable acceptfilter (this is only available on FreeBSD) */
+        9:  872:    if (want_accf) {
+        -:  873:#if defined(__FreeBSD__)
+        -:  874:        struct accept_filter_arg filt = {"httpready", ""};
+        -:  875:        if (setsockopt(sockin, SOL_SOCKET, SO_ACCEPTFILTER,
+        -:  876:                       &filt, sizeof(filt)) == -1)
+        -:  877:            fprintf(stderr, "cannot enable acceptfilter: %s\n",
+        -:  878:                strerror(errno));
+        -:  879:        else
+        -:  880:            printf("enabled acceptfilter\n");
+        -:  881:#else
+       9*:  882:        printf("this platform doesn't support acceptfilter\n");
+        -:  883:#endif
+        -:  884:    }
+        9:  885:}
+        -:  886:
+        1:  887:static void usage(const char *argv0) {
+        1:  888:    printf("usage:\t%s /path/to/wwwroot [flags]\n\n", argv0);
+        1:  889:    printf("flags:\t--port number (default: %u, or 80 if running as root)\n"
+        -:  890:    "\t\tSpecifies which port to listen on for connections.\n"
+        -:  891:    "\t\tPass 0 to let the system choose any free port for you.\n\n", bindport);
+        1:  892:    printf("\t--addr ip (default: all)\n"
+        -:  893:    "\t\tIf multiple interfaces are present, specifies\n"
+        -:  894:    "\t\twhich one to bind the listening port to.\n\n");
+        1:  895:    printf("\t--maxconn number (default: system maximum)\n"
+        -:  896:    "\t\tSpecifies how many concurrent connections to accept.\n\n");
+        1:  897:    printf("\t--log filename (default: stdout)\n"
+        -:  898:    "\t\tSpecifies which file to append the request log to.\n\n");
+        1:  899:    printf("\t--syslog\n"
+        -:  900:    "\t\tUse syslog for request log.\n\n");
+        1:  901:    printf("\t--chroot (default: don't chroot)\n"
+        -:  902:    "\t\tLocks server into wwwroot directory for added security.\n\n");
+        1:  903:    printf("\t--daemon (default: don't daemonize)\n"
+        -:  904:    "\t\tDetach from the controlling terminal and run in the background.\n\n");
+        1:  905:    printf("\t--index filename (default: %s)\n"
+        -:  906:    "\t\tDefault file to serve when a directory is requested.\n\n",
+        -:  907:        index_name);
+        1:  908:    printf("\t--no-listing\n"
+        -:  909:    "\t\tDo not serve listing if directory is requested.\n\n");
+        1:  910:    printf("\t--mimetypes filename (optional)\n"
+        -:  911:    "\t\tParses specified file for extension-MIME associations.\n\n");
+        1:  912:    printf("\t--default-mimetype string (optional, default: %s)\n"
+        -:  913:    "\t\tFiles with unknown extensions are served as this mimetype.\n\n",
+        -:  914:        octet_stream);
+        1:  915:    printf("\t--uid uid/uname, --gid gid/gname (default: don't privdrop)\n"
+        -:  916:    "\t\tDrops privileges to given uid:gid after initialization.\n\n");
+        1:  917:    printf("\t--pidfile filename (default: no pidfile)\n"
+        -:  918:    "\t\tWrite PID to the specified file.  Note that if you are\n"
+        -:  919:    "\t\tusing --chroot, then the pidfile must be relative to,\n"
+        -:  920:    "\t\tand inside the wwwroot.\n\n");
+        1:  921:    printf("\t--no-keepalive\n"
+        -:  922:    "\t\tDisables HTTP Keep-Alive functionality.\n\n");
+        -:  923:#ifdef __FreeBSD__
+        -:  924:    printf("\t--accf (default: don't use acceptfilter)\n"
+        -:  925:    "\t\tUse acceptfilter.  Needs the accf_http module loaded.\n\n");
+        -:  926:#endif
+        1:  927:    printf("\t--forward host url (default: don't forward)\n"
+        -:  928:    "\t\tWeb forward (301 redirect).\n"
+        -:  929:    "\t\tRequests to the host are redirected to the corresponding url.\n"
+        -:  930:    "\t\tThe option may be specified multiple times, in which case\n"
+        -:  931:    "\t\tthe host is matched in order of appearance.\n\n");
+        1:  932:    printf("\t--forward-all url (default: don't forward)\n"
+        -:  933:    "\t\tWeb forward (301 redirect).\n"
+        -:  934:    "\t\tAll requests are redirected to the corresponding url.\n\n");
+        1:  935:    printf("\t--no-server-id\n"
+        -:  936:    "\t\tDon't identify the server type in headers\n"
+        -:  937:    "\t\tor directory listings.\n\n");
+        1:  938:    printf("\t--timeout secs (default: %d)\n"
+        -:  939:    "\t\tIf a connection is idle for more than this many seconds,\n"
+        -:  940:    "\t\tit will be closed. Set to zero to disable timeouts.\n\n",
+        -:  941:    timeout_secs);
+        1:  942:    printf("\t--auth username:password\n"
+        -:  943:    "\t\tEnable basic authentication.\n\n");
+        1:  944:    printf("\t--forward-https\n"
+        -:  945:    "\t\tIf the client requested HTTP, forward to HTTPS.\n"
+        -:  946:    "\t\tThis is useful if darkhttpd is behind a reverse proxy\n"
+        -:  947:    "\t\tthat supports SSL.\n\n");
+        -:  948:#ifdef HAVE_INET6
+        1:  949:    printf("\t--ipv6\n"
+        -:  950:    "\t\tListen on IPv6 address.\n\n");
+        -:  951:#else
+        -:  952:    printf("\t(This binary was built without IPv6 support: -DNO_IPV6)\n\n");
+        -:  953:#endif
+        1:  954:}
+        -:  955:
+        1:  956:static char *base64_encode(char *str) {
+        1:  957:    const char base64_table[] = {
+        -:  958:        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+        -:  959:        'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+        -:  960:        'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+        -:  961:        'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+        -:  962:        'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        -:  963:        'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+        -:  964:        'w', 'x', 'y', 'z', '0', '1', '2', '3',
+        -:  965:        '4', '5', '6', '7', '8', '9', '+', '/'};
+        -:  966:
+       1*:  967:    int input_length = strlen(str);
+        1:  968:    int output_length = 4 * ((input_length + 2) / 3);
+        -:  969:
+        1:  970:    char *encoded_data = malloc(output_length+1);
+        1:  971:    if (encoded_data == NULL) return NULL;
+        -:  972:
+        -:  973:    int i;
+        -:  974:    int j;
+        6:  975:    for (i = 0, j = 0; i < input_length;) {
+        5:  976:        uint32_t octet_a = i < input_length ? (unsigned char)str[i++] : 0;
+        5:  977:        uint32_t octet_b = i < input_length ? (unsigned char)str[i++] : 0;
+        5:  978:        uint32_t octet_c = i < input_length ? (unsigned char)str[i++] : 0;
+        -:  979:
+        5:  980:        uint32_t triple = (octet_a << 0x10) + (octet_b << 0x08) + octet_c;
+        -:  981:
+        5:  982:        encoded_data[j++] = base64_table[(triple >> 3 * 6) & 0x3F];
+        5:  983:        encoded_data[j++] = base64_table[(triple >> 2 * 6) & 0x3F];
+        5:  984:        encoded_data[j++] = base64_table[(triple >> 1 * 6) & 0x3F];
+        5:  985:        encoded_data[j++] = base64_table[(triple >> 0 * 6) & 0x3F];
+        -:  986:    }
+        -:  987:
+        1:  988:    const int mod_table[] = {0, 2, 1};
+        3:  989:    for (i = 0; i < mod_table[input_length % 3]; i++)
+        2:  990:        encoded_data[output_length - 1 - i] = '=';
+        1:  991:    encoded_data[output_length] = '\0';
+        -:  992:
+        1:  993:    return encoded_data;
+        -:  994:}
+        -:  995:
+        -:  996:/* Returns 1 if string is a number, 0 otherwise.  Set num to NULL if
+        -:  997: * disinterested in value.
+        -:  998: */
+       10:  999:static int str_to_num(const char *str, long long *num) {
+       10: 1000:    char *endptr;
+       10: 1001:    long long n;
+        -: 1002:
+       10: 1003:    errno = 0;
+      10*: 1004:    n = strtoll(str, &endptr, 10);
+       10: 1005:    if (*endptr != '\0')
+        -: 1006:        return 0;
+      10*: 1007:    if (n == LLONG_MIN && errno == ERANGE)
+        -: 1008:        return 0;
+      10*: 1009:    if (n == LLONG_MAX && errno == ERANGE)
+        -: 1010:        return 0;
+       10: 1011:    if (num != NULL)
+       10: 1012:        *num = n;
+        -: 1013:    return 1;
+        -: 1014:}
+        -: 1015:
+        -: 1016:/* Returns a valid number or dies. */
+       10: 1017:static long long xstr_to_num(const char *str) {
+       10: 1018:    long long ret;
+        -: 1019:
+       10: 1020:    if (!str_to_num(str, &ret)) {
+    #####: 1021:        errx(1, "number \"%s\" is invalid", str);
+        -: 1022:    }
+       10: 1023:    return ret;
+        -: 1024:}
+        -: 1025:
+       12: 1026:static void parse_commandline(const int argc, char *argv[]) {
+       12: 1027:    int i;
+       12: 1028:    size_t len;
+        -: 1029:
+      12*: 1030:    if ((argc < 2) || (argc == 2 && strcmp(argv[1], "--help") == 0)) {
+        1: 1031:        usage(argv[0]); /* no wwwroot given */
+        1: 1032:        exit(EXIT_SUCCESS);
+        -: 1033:    }
+        -: 1034:
+       11: 1035:    if (getuid() == 0)
+    #####: 1036:        bindport = 80;
+        -: 1037:
+       11: 1038:    wwwroot = xstrdup(argv[1]);
+        -: 1039:    /* Strip ending slash. */
+      11*: 1040:    len = strlen(wwwroot);
+       11: 1041:    if (len > 0)
+       11: 1042:        if (wwwroot[len - 1] == '/')
+    #####: 1043:            wwwroot[len - 1] = '\0';
+        -: 1044:
+        -: 1045:    /* walk through the remainder of the arguments (if any) */
+       32: 1046:    for (i = 2; i < argc; i++) {
+      23*: 1047:        if (strcmp(argv[i], "--port") == 0) {
+        9: 1048:            if (++i >= argc)
+    #####: 1049:                errx(1, "missing number after --port");
+        9: 1050:            bindport = (uint16_t)xstr_to_num(argv[i]);
+        -: 1051:        }
+      14*: 1052:        else if (strcmp(argv[i], "--addr") == 0) {
+    #####: 1053:            if (++i >= argc)
+    #####: 1054:                errx(1, "missing ip after --addr");
+    #####: 1055:            bindaddr = argv[i];
+        -: 1056:        }
+      14*: 1057:        else if (strcmp(argv[i], "--maxconn") == 0) {
+    #####: 1058:            if (++i >= argc)
+    #####: 1059:                errx(1, "missing number after --maxconn");
+    #####: 1060:            max_connections = (int)xstr_to_num(argv[i]);
+        -: 1061:        }
+      14*: 1062:        else if (strcmp(argv[i], "--log") == 0) {
+        1: 1063:            if (++i >= argc)
+    #####: 1064:                errx(1, "missing filename after --log");
+        1: 1065:            logfile_name = argv[i];
+        -: 1066:        }
+      13*: 1067:        else if (strcmp(argv[i], "--chroot") == 0) {
+    #####: 1068:            want_chroot = 1;
+        -: 1069:        }
+      13*: 1070:        else if (strcmp(argv[i], "--daemon") == 0) {
+    #####: 1071:            want_daemon = 1;
+        -: 1072:        }
+      13*: 1073:        else if (strcmp(argv[i], "--index") == 0) {
+    #####: 1074:            if (++i >= argc)
+    #####: 1075:                errx(1, "missing filename after --index");
+    #####: 1076:            index_name = argv[i];
+        -: 1077:        }
+      13*: 1078:        else if (strcmp(argv[i], "--no-listing") == 0) {
+        1: 1079:            no_listing = 1;
+        -: 1080:        }
+      12*: 1081:        else if (strcmp(argv[i], "--mimetypes") == 0) {
+        1: 1082:            if (++i >= argc)
+    #####: 1083:                errx(1, "missing filename after --mimetypes");
+        1: 1084:            parse_extension_map_file(argv[i]);
+        -: 1085:        }
+      11*: 1086:        else if (strcmp(argv[i], "--default-mimetype") == 0) {
+        1: 1087:            if (++i >= argc)
+    #####: 1088:                errx(1, "missing string after --default-mimetype");
+        1: 1089:            default_mimetype = argv[i];
+        -: 1090:        }
+      10*: 1091:        else if (strcmp(argv[i], "--uid") == 0) {
+    #####: 1092:            struct passwd *p;
+    #####: 1093:            if (++i >= argc)
+    #####: 1094:                errx(1, "missing uid after --uid");
+    #####: 1095:            p = getpwnam(argv[i]);
+    #####: 1096:            if (!p) {
+    #####: 1097:                p = getpwuid((uid_t)xstr_to_num(argv[i]));
+        -: 1098:            }
+    #####: 1099:            if (!p)
+    #####: 1100:                errx(1, "no such uid: `%s'", argv[i]);
+    #####: 1101:            drop_uid = p->pw_uid;
+        -: 1102:        }
+      10*: 1103:        else if (strcmp(argv[i], "--gid") == 0) {
+    #####: 1104:            struct group *g;
+    #####: 1105:            if (++i >= argc)
+    #####: 1106:                errx(1, "missing gid after --gid");
+    #####: 1107:            g = getgrnam(argv[i]);
+    #####: 1108:            if (!g) {
+    #####: 1109:                g = getgrgid((gid_t)xstr_to_num(argv[i]));
+        -: 1110:            }
+    #####: 1111:            if (!g) {
+    #####: 1112:                errx(1, "no such gid: `%s'", argv[i]);
+        -: 1113:            }
+    #####: 1114:            drop_gid = g->gr_gid;
+        -: 1115:        }
+      10*: 1116:        else if (strcmp(argv[i], "--pidfile") == 0) {
+    #####: 1117:            if (++i >= argc)
+    #####: 1118:                errx(1, "missing filename after --pidfile");
+    #####: 1119:            pidfile_name = argv[i];
+        -: 1120:        }
+      10*: 1121:        else if (strcmp(argv[i], "--no-keepalive") == 0) {
+    #####: 1122:            want_keepalive = 0;
+        -: 1123:        }
+      10*: 1124:        else if (strcmp(argv[i], "--accf") == 0) {
+    #####: 1125:            want_accf = 1;
+        -: 1126:        }
+      10*: 1127:        else if (strcmp(argv[i], "--syslog") == 0) {
+    #####: 1128:            syslog_enabled = 1;
+        -: 1129:        }
+      10*: 1130:        else if (strcmp(argv[i], "--forward") == 0) {
+        3: 1131:            const char *host, *url;
+        3: 1132:            if (++i >= argc)
+    #####: 1133:                errx(1, "missing host after --forward");
+        3: 1134:            host = argv[i];
+        3: 1135:            if (++i >= argc)
+    #####: 1136:                errx(1, "missing url after --forward");
+        3: 1137:            url = argv[i];
+        3: 1138:            add_forward_mapping(host, url);
+        -: 1139:        }
+       7*: 1140:        else if (strcmp(argv[i], "--forward-all") == 0) {
+        1: 1141:            if (++i >= argc)
+    #####: 1142:                errx(1, "missing url after --forward-all");
+        1: 1143:            forward_all_url = argv[i];
+        -: 1144:        }
+       6*: 1145:        else if (strcmp(argv[i], "--no-server-id") == 0) {
+        1: 1146:            want_server_id = 0;
+        -: 1147:        }
+       5*: 1148:        else if (strcmp(argv[i], "--timeout") == 0) {
+        1: 1149:            if (++i >= argc)
+    #####: 1150:                errx(1, "missing number after --timeout");
+        1: 1151:            timeout_secs = (int)xstr_to_num(argv[i]);
+        -: 1152:        }
+       4*: 1153:        else if (strcmp(argv[i], "--auth") == 0) {
+       3*: 1154:            if (++i >= argc || strchr(argv[i], ':') == NULL)
+        2: 1155:                errx(1, "missing 'user:pass' after --auth");
+        -: 1156:
+        1: 1157:            char *key = base64_encode(argv[i]);
+        1: 1158:            xasprintf(&auth_key, "Basic %s", key);
+        1: 1159:            free(key);
+        -: 1160:        }
+       1*: 1161:        else if (strcmp(argv[i], "--forward-https") == 0) {
+        1: 1162:            forward_to_https = 1;
+        -: 1163:        }
+        -: 1164:#ifdef HAVE_INET6
+    #####: 1165:        else if (strcmp(argv[i], "--ipv6") == 0) {
+    #####: 1166:            inet6 = 1;
+        -: 1167:        }
+        -: 1168:#endif
+        -: 1169:        else
+    #####: 1170:            errx(1, "unknown argument `%s'", argv[i]);
+        -: 1171:    }
+        9: 1172:}
+        -: 1173:
+        -: 1174:/* Allocate and initialize an empty connection. */
+      145: 1175:static struct connection *new_connection(void) {
+      145: 1176:    struct connection *conn = xmalloc(sizeof(struct connection));
+        -: 1177:
+      145: 1178:    conn->socket = -1;
+      145: 1179:    memset(&conn->client, 0, sizeof(conn->client));
+      145: 1180:    conn->last_active = now;
+      145: 1181:    conn->request = NULL;
+      145: 1182:    conn->request_length = 0;
+      145: 1183:    conn->method = NULL;
+      145: 1184:    conn->url = NULL;
+      145: 1185:    conn->referer = NULL;
+      145: 1186:    conn->user_agent = NULL;
+      145: 1187:    conn->authorization = NULL;
+      145: 1188:    conn->range_begin = 0;
+      145: 1189:    conn->range_end = 0;
+      145: 1190:    conn->range_begin_given = 0;
+      145: 1191:    conn->range_end_given = 0;
+      145: 1192:    conn->header = NULL;
+      145: 1193:    conn->header_length = 0;
+      145: 1194:    conn->header_sent = 0;
+      145: 1195:    conn->header_dont_free = 0;
+      145: 1196:    conn->header_only = 0;
+      145: 1197:    conn->http_code = 0;
+      145: 1198:    conn->conn_close = 1;
+      145: 1199:    conn->reply = NULL;
+      145: 1200:    conn->reply_dont_free = 0;
+      145: 1201:    conn->reply_fd = -1;
+      145: 1202:    conn->reply_start = 0;
+      145: 1203:    conn->reply_length = 0;
+      145: 1204:    conn->reply_sent = 0;
+      145: 1205:    conn->total_sent = 0;
+        -: 1206:
+        -: 1207:    /* Make it harmless so it gets garbage-collected if it should, for some
+        -: 1208:     * reason, fail to be correctly filled out.
+        -: 1209:     */
+      145: 1210:    conn->state = DONE;
+        -: 1211:
+      145: 1212:    return conn;
+        -: 1213:}
+        -: 1214:
+        -: 1215:/* Accept a connection from sockin and add it to the connection queue. */
+      145: 1216:static void accept_connection(void) {
+      145: 1217:    struct sockaddr_in addrin;
+        -: 1218:#ifdef HAVE_INET6
+      145: 1219:    struct sockaddr_in6 addrin6;
+        -: 1220:#endif
+      145: 1221:    socklen_t sin_size;
+      145: 1222:    struct connection *conn;
+      145: 1223:    int fd;
+        -: 1224:
+        -: 1225:#ifdef HAVE_INET6
+      145: 1226:    if (inet6) {
+    #####: 1227:        sin_size = sizeof(addrin6);
+    #####: 1228:        memset(&addrin6, 0, sin_size);
+    #####: 1229:        fd = accept(sockin, (struct sockaddr *)&addrin6, &sin_size);
+        -: 1230:    } else
+        -: 1231:#endif
+        -: 1232:    {
+      145: 1233:        sin_size = sizeof(addrin);
+      145: 1234:        memset(&addrin, 0, sin_size);
+      145: 1235:        fd = accept(sockin, (struct sockaddr *)&addrin, &sin_size);
+        -: 1236:    }
+        -: 1237:
+      145: 1238:    if (fd == -1) {
+        -: 1239:        /* Failed to accept, but try to keep serving existing connections. */
+    #####: 1240:        if (errno == EMFILE || errno == ENFILE) accepting = 0;
+    #####: 1241:        warn("accept()");
+    #####: 1242:        return;
+        -: 1243:    }
+        -: 1244:
+        -: 1245:    /* Allocate and initialize struct connection. */
+      145: 1246:    conn = new_connection();
+      145: 1247:    conn->socket = fd;
+      145: 1248:    nonblock_socket(conn->socket);
+      145: 1249:    conn->state = RECV_REQUEST;
+        -: 1250:
+        -: 1251:#ifdef HAVE_INET6
+      145: 1252:    if (inet6) {
+    #####: 1253:        conn->client = addrin6.sin6_addr;
+        -: 1254:    } else
+        -: 1255:#endif
+        -: 1256:    {
+      145: 1257:        *(in_addr_t *)&conn->client = addrin.sin_addr.s_addr;
+        -: 1258:    }
+     145*: 1259:    LIST_INSERT_HEAD(&connlist, conn, entries);
+        -: 1260:
+      145: 1261:    if (debug)
+      290: 1262:        printf("accepted connection from %s:%u (fd %d)\n",
+        -: 1263:               inet_ntoa(addrin.sin_addr),
+      145: 1264:               ntohs(addrin.sin_port),
+        -: 1265:               conn->socket);
+        -: 1266:
+        -: 1267:    /* Try to read straight away rather than going through another iteration
+        -: 1268:     * of the select() loop.
+        -: 1269:     */
+      145: 1270:    poll_recv_request(conn);
+        -: 1271:}
+        -: 1272:
+        -: 1273:/* Should this character be logencoded?
+        -: 1274: */
+     2662: 1275:static int needs_logencoding(const unsigned char c) {
+     2662: 1276:    return ((c <= 0x1F) || (c >= 0x7F) || (c == '"'));
+        -: 1277:}
+        -: 1278:
+        -: 1279:/* Encode string for logging.
+        -: 1280: */
+      413: 1281:static void logencode(const char *src, char *dest) {
+      413: 1282:    static const char hex[] = "0123456789ABCDEF";
+      413: 1283:    int i, j;
+        -: 1284:
+     3075: 1285:    for (i = j = 0; src[i] != '\0'; i++) {
+     2662: 1286:        if (needs_logencoding((unsigned char)src[i])) {
+    #####: 1287:            dest[j++] = '%';
+    #####: 1288:            dest[j++] = hex[(src[i] >> 4) & 0xF];
+    #####: 1289:            dest[j++] = hex[ src[i]       & 0xF];
+        -: 1290:        }
+        -: 1291:        else
+     2662: 1292:            dest[j++] = src[i];
+        -: 1293:    }
+      413: 1294:    dest[j] = '\0';
+      413: 1295:}
+        -: 1296:
+        -: 1297:/* Format [when] as a CLF date format, stored in the specified buffer.  The same
+        -: 1298: * buffer is returned for convenience.
+        -: 1299: */
+        -: 1300:#define CLF_DATE_LEN 29 /* strlen("[10/Oct/2000:13:55:36 -0700]")+1 */
+      145: 1301:static char *clf_date(char *dest, const time_t when) {
+      145: 1302:    time_t when_copy = when;
+      145: 1303:    if (strftime(dest, CLF_DATE_LEN,
+      145: 1304:                 "[%d/%b/%Y:%H:%M:%S %z]", localtime(&when_copy)) == 0)
+    #####: 1305:        errx(1, "strftime() failed [%s]", dest);
+      145: 1306:    return dest;
+        -: 1307:}
+        -: 1308:
+        -: 1309:/* Add a connection's details to the logfile. */
+      167: 1310:static void log_connection(const struct connection *conn) {
+      167: 1311:    char *safe_method, *safe_url, *safe_referer, *safe_user_agent,
+      167: 1312:    dest[CLF_DATE_LEN];
+        -: 1313:
+      167: 1314:    if (logfile == NULL)
+       22: 1315:        return;
+      167: 1316:    if (conn->http_code == 0)
+        -: 1317:        return; /* invalid - died in request */
+      145: 1318:    if (conn->method == NULL)
+        -: 1319:        return; /* invalid - didn't parse - maybe too long */
+        -: 1320:
+        -: 1321:#define make_safe(x) do { \
+        -: 1322:    if (conn->x) { \
+        -: 1323:        safe_##x = xmalloc(strlen(conn->x)*3 + 1); \
+        -: 1324:        logencode(conn->x, safe_##x); \
+        -: 1325:    } else { \
+        -: 1326:        safe_##x = NULL; \
+        -: 1327:    } \
+        -: 1328:} while(0)
+        -: 1329:
+      145: 1330:    make_safe(method);
+      145: 1331:    make_safe(url);
+     145*: 1332:    make_safe(referer);
+      145: 1333:    make_safe(user_agent);
+        -: 1334:
+        -: 1335:#define use_safe(x) safe_##x ? safe_##x : ""
+      145: 1336:  if (syslog_enabled) {
+    #####: 1337:    syslog(LOG_INFO, "%s - - %s \"%s %s HTTP/1.1\" %d %llu \"%s\" \"%s\"\n",
+    #####: 1338:        get_address_text(&conn->client),
+        -: 1339:        clf_date(dest, now),
+        -: 1340:        use_safe(method),
+        -: 1341:        use_safe(url),
+        -: 1342:        conn->http_code,
+    #####: 1343:        llu(conn->total_sent),
+        -: 1344:        use_safe(referer),
+        -: 1345:        use_safe(user_agent)
+        -: 1346:        );
+        -: 1347:  } else {
+     457*: 1348:    fprintf(logfile, "%s - - %s \"%s %s HTTP/1.1\" %d %llu \"%s\" \"%s\"\n",
+      145: 1349:        get_address_text(&conn->client),
+        -: 1350:        clf_date(dest, now),
+        -: 1351:        use_safe(method),
+        -: 1352:        use_safe(url),
+        -: 1353:        conn->http_code,
+      145: 1354:        llu(conn->total_sent),
+        -: 1355:        use_safe(referer),
+        -: 1356:        use_safe(user_agent)
+        -: 1357:        );
+      145: 1358:    fflush(logfile);
+        -: 1359:  }    
+        -: 1360:#define free_safe(x) if (safe_##x) free(safe_##x)
+        -: 1361:
+      145: 1362:    free_safe(method);
+      145: 1363:    free_safe(url);
+     145*: 1364:    free_safe(referer);
+      145: 1365:    free_safe(user_agent);
+        -: 1366:
+        -: 1367:#undef make_safe
+        -: 1368:#undef use_safe
+        -: 1369:#undef free_safe
+        -: 1370:}
+        -: 1371:
+        -: 1372:/* Log a connection, then cleanly deallocate its internals. */
+      167: 1373:static void free_connection(struct connection *conn) {
+      167: 1374:    if (debug) printf("free_connection(%d)\n", conn->socket);
+      167: 1375:    log_connection(conn);
+      167: 1376:    if (conn->socket != -1) xclose(conn->socket);
+     167*: 1377:    if (conn->request != NULL) free(conn->request);
+      167: 1378:    if (conn->method != NULL) free(conn->method);
+      167: 1379:    if (conn->url != NULL) free(conn->url);
+     167*: 1380:    if (conn->referer != NULL) free(conn->referer);
+      167: 1381:    if (conn->user_agent != NULL) free(conn->user_agent);
+      167: 1382:    if (conn->authorization != NULL) free(conn->authorization);
+      167: 1383:    if (conn->header != NULL && !conn->header_dont_free) free(conn->header);
+      167: 1384:    if (conn->reply != NULL && !conn->reply_dont_free) free(conn->reply);
+      167: 1385:    if (conn->reply_fd != -1) xclose(conn->reply_fd);
+        -: 1386:    /* If we ran out of sockets, try to resume accepting. */
+      167: 1387:    accepting = 1;
+      167: 1388:}
+        -: 1389:
+        -: 1390:/* Recycle a finished connection for HTTP/1.1 Keep-Alive. */
+       22: 1391:static void recycle_connection(struct connection *conn) {
+       22: 1392:    int socket_tmp = conn->socket;
+       22: 1393:    if (debug)
+       22: 1394:        printf("recycle_connection(%d)\n", socket_tmp);
+       22: 1395:    conn->socket = -1; /* so free_connection() doesn't close it */
+       22: 1396:    free_connection(conn);
+       22: 1397:    conn->socket = socket_tmp;
+        -: 1398:
+        -: 1399:    /* don't reset conn->client */
+       22: 1400:    conn->request = NULL;
+       22: 1401:    conn->request_length = 0;
+       22: 1402:    conn->method = NULL;
+       22: 1403:    conn->url = NULL;
+       22: 1404:    conn->referer = NULL;
+       22: 1405:    conn->user_agent = NULL;
+       22: 1406:    conn->authorization = NULL;
+       22: 1407:    conn->range_begin = 0;
+       22: 1408:    conn->range_end = 0;
+       22: 1409:    conn->range_begin_given = 0;
+       22: 1410:    conn->range_end_given = 0;
+       22: 1411:    conn->header = NULL;
+       22: 1412:    conn->header_length = 0;
+       22: 1413:    conn->header_sent = 0;
+       22: 1414:    conn->header_dont_free = 0;
+       22: 1415:    conn->header_only = 0;
+       22: 1416:    conn->http_code = 0;
+       22: 1417:    conn->conn_close = 1;
+       22: 1418:    conn->reply = NULL;
+       22: 1419:    conn->reply_dont_free = 0;
+       22: 1420:    conn->reply_fd = -1;
+       22: 1421:    conn->reply_start = 0;
+       22: 1422:    conn->reply_length = 0;
+       22: 1423:    conn->reply_sent = 0;
+       22: 1424:    conn->total_sent = 0;
+        -: 1425:
+       22: 1426:    conn->state = RECV_REQUEST; /* ready for another */
+       22: 1427:}
+        -: 1428:
+        -: 1429:/* Uppercasify all characters in a string of given length. */
+      145: 1430:static void strntoupper(char *str, const size_t length) {
+      145: 1431:    size_t i;
+        -: 1432:
+      588: 1433:    for (i = 0; i < length; i++)
+      443: 1434:        str[i] = (char)toupper(str[i]);
+      145: 1435:}
+        -: 1436:
+        -: 1437:/* If a connection has been idle for more than timeout_secs, it will be
+        -: 1438: * marked as DONE and killed off in httpd_poll().
+        -: 1439: */
+      312: 1440:static void poll_check_timeout(struct connection *conn) {
+      312: 1441:    if (timeout_secs > 0) {
+      312: 1442:        if (now - conn->last_active >= timeout_secs) {
+        1: 1443:            if (debug)
+        1: 1444:                printf("poll_check_timeout(%d) closing connection\n",
+        -: 1445:                       conn->socket);
+        1: 1446:            conn->conn_close = 1;
+        1: 1447:            conn->state = DONE;
+        -: 1448:        }
+        -: 1449:    }
+      312: 1450:}
+        -: 1451:
+        -: 1452:/* Format [when] as an RFC1123 date, stored in the specified buffer.  The same
+        -: 1453: * buffer is returned for convenience.
+        -: 1454: */
+        -: 1455:#define DATE_LEN 30 /* strlen("Fri, 28 Feb 2003 00:02:08 GMT")+1 */
+      210: 1456:static char *rfc1123_date(char *dest, const time_t when) {
+      210: 1457:    time_t when_copy = when;
+      210: 1458:    if (strftime(dest, DATE_LEN,
+      210: 1459:                 "%a, %d %b %Y %H:%M:%S GMT", gmtime(&when_copy)) == 0)
+    #####: 1460:        errx(1, "strftime() failed [%s]", dest);
+      210: 1461:    return dest;
+        -: 1462:}
+        -: 1463:
+        -: 1464:/* Decode URL by converting %XX (where XX are hexadecimal digits) to the
+        -: 1465: * character it represents.  Don't forget to free the return value.
+        -: 1466: */
+      142: 1467:static char *urldecode(const char *url) {
+     142*: 1468:    size_t i, pos, len = strlen(url);
+      142: 1469:    char *out = xmalloc(len+1);
+        -: 1470:
+     1573: 1471:    for (i = 0, pos = 0; i < len; i++) {
+     1289: 1472:        if ((url[i] == '%') && (i+2 < len) &&
+       24: 1473:            isxdigit(url[i+1]) && isxdigit(url[i+2])) {
+        -: 1474:            /* decode %XX */
+        -: 1475:#define HEX_TO_DIGIT(hex) ( \
+        -: 1476:    ((hex) >= 'A' && (hex) <= 'F') ? ((hex)-'A'+10): \
+        -: 1477:    ((hex) >= 'a' && (hex) <= 'f') ? ((hex)-'a'+10): \
+        -: 1478:    ((hex)-'0') )
+        -: 1479:
+      48*: 1480:            out[pos++] = HEX_TO_DIGIT(url[i+1]) * 16 +
+      24*: 1481:                         HEX_TO_DIGIT(url[i+2]);
+       24: 1482:            i += 2;
+        -: 1483:#undef HEX_TO_DIGIT
+        -: 1484:        } else {
+        -: 1485:            /* straight copy */
+     1265: 1486:            out[pos++] = url[i];
+        -: 1487:        }
+        -: 1488:    }
+      142: 1489:    out[pos] = '\0';
+      142: 1490:    return out;
+        -: 1491:}
+        -: 1492:
+        -: 1493:/* Returns Connection or Keep-Alive header, depending on conn_close. */
+      145: 1494:static const char *keep_alive(const struct connection *conn)
+        -: 1495:{
+     145*: 1496:    return (conn->conn_close ? "Connection: close\r\n" : keep_alive_field);
+        -: 1497:}
+        -: 1498:
+        -: 1499:/* "Generated by " + pkgname + " on " + date + "\n"
+        -: 1500: *  1234567890123               1234            2 ('\n' and '\0')
+        -: 1501: */
+        -: 1502:static char _generated_on_buf[13 + sizeof(pkgname) - 1 + 4 + DATE_LEN + 2];
+      116: 1503:static const char *generated_on(const char date[DATE_LEN]) {
+      116: 1504:    if (!want_server_id)
+        -: 1505:        return "";
+      115: 1506:    snprintf(_generated_on_buf, sizeof(_generated_on_buf),
+        -: 1507:            "Generated by %s on %s\n",
+        -: 1508:            pkgname, date);
+      115: 1509:    return _generated_on_buf;
+        -: 1510:}
+        -: 1511:
+        -: 1512:/* A default reply for any (erroneous) occasion. */
+        -: 1513:static void default_reply(struct connection *conn,
+        -: 1514:        const int errcode, const char *errname, const char *format, ...)
+        -: 1515:        __printflike(4, 5);
+       54: 1516:static void default_reply(struct connection *conn,
+        -: 1517:        const int errcode, const char *errname, const char *format, ...) {
+       54: 1518:    char *reason, date[DATE_LEN];
+       54: 1519:    va_list va;
+        -: 1520:
+       54: 1521:    va_start(va, format);
+       54: 1522:    xvasprintf(&reason, format, va);
+       54: 1523:    va_end(va);
+        -: 1524:
+        -: 1525:    /* Only really need to calculate the date once. */
+       54: 1526:    rfc1123_date(date, now);
+        -: 1527:
+       54: 1528:    conn->reply_length = xasprintf(&(conn->reply),
+        -: 1529:     "<html><head><title>%d %s</title></head><body>\n"
+        -: 1530:     "<h1>%s</h1>\n" /* errname */
+        -: 1531:     "%s\n" /* reason */
+        -: 1532:     "<hr>\n"
+        -: 1533:     "%s" /* generated on */
+        -: 1534:     "</body></html>\n",
+        -: 1535:     errcode, errname, errname, reason, generated_on(date));
+       54: 1536:    free(reason);
+        -: 1537:
+       54: 1538:    const char auth_header[] =
+        -: 1539:        "WWW-Authenticate: Basic realm=\"User Visible Realm\"\r\n";
+        -: 1540:
+       54: 1541:    conn->header_length = xasprintf(&(conn->header),
+        -: 1542:     "HTTP/1.1 %d %s\r\n"
+        -: 1543:     "Date: %s\r\n"
+        -: 1544:     "%s" /* server */
+        -: 1545:     "Accept-Ranges: bytes\r\n"
+        -: 1546:     "%s" /* keep-alive */
+        -: 1547:     "Content-Length: %llu\r\n"
+        -: 1548:     "Content-Type: text/html; charset=UTF-8\r\n"
+        -: 1549:     "%s"
+        -: 1550:     "\r\n",
+        -: 1551:     errcode, errname, date, server_hdr, keep_alive(conn),
+       54: 1552:     llu(conn->reply_length),
+       54: 1553:     (auth_key != NULL ? auth_header : ""));
+        -: 1554:
+       54: 1555:    conn->reply_type = REPLY_GENERATED;
+       54: 1556:    conn->http_code = errcode;
+        -: 1557:
+        -: 1558:    /* Reset reply_start in case the request set a range. */
+       54: 1559:    conn->reply_start = 0;
+       54: 1560:}
+        -: 1561:
+        -: 1562:static void redirect(struct connection *conn, const char *format, ...)
+        -: 1563:    __printflike(2, 3);
+        6: 1564:static void redirect(struct connection *conn, const char *format, ...) {
+        6: 1565:    char *where, date[DATE_LEN];
+        6: 1566:    va_list va;
+        -: 1567:
+        6: 1568:    va_start(va, format);
+        6: 1569:    xvasprintf(&where, format, va);
+        6: 1570:    va_end(va);
+        -: 1571:
+        -: 1572:    /* Only really need to calculate the date once. */
+        6: 1573:    rfc1123_date(date, now);
+        -: 1574:
+        6: 1575:    conn->reply_length = xasprintf(&(conn->reply),
+        -: 1576:     "<html><head><title>301 Moved Permanently</title></head><body>\n"
+        -: 1577:     "<h1>Moved Permanently</h1>\n"
+        -: 1578:     "Moved to: <a href=\"%s\">%s</a>\n" /* where x 2 */
+        -: 1579:     "<hr>\n"
+        -: 1580:     "%s" /* generated on */
+        -: 1581:     "</body></html>\n",
+        -: 1582:     where, where, generated_on(date));
+        -: 1583:
+       12: 1584:    conn->header_length = xasprintf(&(conn->header),
+        -: 1585:     "HTTP/1.1 301 Moved Permanently\r\n"
+        -: 1586:     "Date: %s\r\n"
+        -: 1587:     "%s" /* server */
+        -: 1588:     /* "Accept-Ranges: bytes\r\n" - not relevant here */
+        -: 1589:     "Location: %s\r\n"
+        -: 1590:     "%s" /* keep-alive */
+        -: 1591:     "Content-Length: %llu\r\n"
+        -: 1592:     "Content-Type: text/html; charset=UTF-8\r\n"
+        -: 1593:     "\r\n",
+        6: 1594:     date, server_hdr, where, keep_alive(conn), llu(conn->reply_length));
+        -: 1595:
+        6: 1596:    free(where);
+        6: 1597:    conn->reply_type = REPLY_GENERATED;
+        6: 1598:    conn->http_code = 301;
+        6: 1599:}
+        -: 1600:
+        -: 1601:/* Parses a single HTTP request field.  Returns string from end of [field] to
+        -: 1602: * first \r, \n or end of request string.  Returns NULL if [field] can't be
+        -: 1603: * matched.  Case insensitive.
+        -: 1604: *
+        -: 1605: * You need to remember to deallocate the result.
+        -: 1606: * example: parse_field(conn, "Referer: ");
+        -: 1607: */
+      798: 1608:static char *parse_field(const struct connection *conn, const char *field) {
+      798: 1609:    size_t bound1, bound2;
+      798: 1610:    char *pos;
+        -: 1611:
+        -: 1612:    /* find start */
+     798*: 1613:    pos = strcasestr(conn->request, field);
+      798: 1614:    if (pos == NULL)
+        -: 1615:        return NULL;
+     295*: 1616:    assert(pos >= conn->request);
+     295*: 1617:    bound1 = (size_t)(pos - conn->request) + strlen(field);
+        -: 1618:
+        -: 1619:    /* find end */
+      295: 1620:    for (bound2 = bound1;
+     2502: 1621:         ((bound2 < conn->request_length) &&
+     4960: 1622:          (conn->request[bound2] != '\r') &&
+     2458: 1623:          (conn->request[bound2] != '\n'));
+        -: 1624:         bound2++)
+        -: 1625:            ;
+        -: 1626:
+        -: 1627:    /* copy to buffer */
+      295: 1628:    return split_string(conn->request, bound1, bound2);
+        -: 1629:}
+        -: 1630:
+        1: 1631:static void redirect_https(struct connection *conn) {
+        1: 1632:    char *host, *url;
+        -: 1633:
+        -: 1634:    /* work out path of file being requested */
+        1: 1635:    url = urldecode(conn->url);
+        -: 1636:
+        -: 1637:    /* make sure it's safe */
+        1: 1638:    if (make_safe_url(url) == NULL) {
+    #####: 1639:        default_reply(conn, 400, "Bad Request",
+        -: 1640:                      "You requested an invalid URL.");
+    #####: 1641:        free(url);
+    #####: 1642:        return;
+        -: 1643:    }
+        -: 1644:
+        1: 1645:    host = parse_field(conn, "Host: ");
+        1: 1646:    if (host == NULL) {
+    #####: 1647:        default_reply(conn, 400, "Bad Request",
+        -: 1648:                "Missing 'Host' header.");
+    #####: 1649:        free(url);
+    #####: 1650:        return;
+        -: 1651:    }
+        -: 1652:
+        1: 1653:    redirect(conn, "https://%s%s", host, url);
+        1: 1654:    free(host);
+        1: 1655:    free(url);
+        -: 1656:}
+        -: 1657:
+      145: 1658:static int is_https_redirect(struct connection *conn) {
+      145: 1659:    char *proto = NULL;
+        -: 1660:
+      145: 1661:    if (forward_to_https == 0)
+        -: 1662:        return 0; /* --forward-https was never used */
+        -: 1663:
+        3: 1664:    proto = parse_field(conn, "X-Forwarded-Proto: ");
+        3: 1665:    if (proto == NULL || strcasecmp(proto, "https") == 0) {
+        2: 1666:        free(proto);
+        2: 1667:        return 0;
+        -: 1668:    }
+        -: 1669:
+        1: 1670:    free(proto);
+        1: 1671:    return 1;
+        -: 1672:}
+        -: 1673:
+        -: 1674:/* Parse a Range: field into range_begin and range_end.  Only handles the
+        -: 1675: * first range if a list is given.  Sets range_{begin,end}_given to 1 if
+        -: 1676: * either part of the range is given.
+        -: 1677: */
+      145: 1678:static void parse_range_field(struct connection *conn) {
+      145: 1679:    char *range;
+        -: 1680:
+      145: 1681:    range = parse_field(conn, "Range: bytes=");
+      145: 1682:    if (range == NULL)
+        -: 1683:        return;
+        -: 1684:
+       38: 1685:    do {
+       38: 1686:        size_t bound1, bound2, len;
+       38: 1687:        len = strlen(range);
+        -: 1688:
+        -: 1689:        /* parse number up to hyphen */
+       38: 1690:        bound1 = 0;
+       38: 1691:        for (bound2=0;
+      230: 1692:            (bound2 < len) && isdigit((int)range[bound2]);
+        -: 1693:            bound2++)
+        -: 1694:                ;
+        -: 1695:
+       38: 1696:        if ((bound2 == len) || (range[bound2] != '-'))
+        -: 1697:            break; /* there must be a hyphen here */
+        -: 1698:
+       38: 1699:        if (bound1 != bound2) {
+       34: 1700:            conn->range_begin_given = 1;
+       34: 1701:            conn->range_begin = (off_t)strtoll(range+bound1, NULL, 10);
+        -: 1702:        }
+        -: 1703:
+        -: 1704:        /* parse number after hyphen */
+        -: 1705:        bound2++;
+      230: 1706:        for (bound1=bound2;
+      230: 1707:            (bound2 < len) && isdigit((int)range[bound2]);
+        -: 1708:            bound2++)
+        -: 1709:                ;
+        -: 1710:
+      38*: 1711:        if ((bound2 != len) && (range[bound2] != ','))
+        -: 1712:            break; /* must be end of string or a list to be valid */
+        -: 1713:
+       38: 1714:        if (bound1 != bound2) {
+       34: 1715:            conn->range_end_given = 1;
+       34: 1716:            conn->range_end = (off_t)strtoll(range+bound1, NULL, 10);
+        -: 1717:        }
+       38: 1718:    } while(0);
+       38: 1719:    free(range);
+        -: 1720:}
+        -: 1721:
+        -: 1722:/* Parse an HTTP request like "GET / HTTP/1.1" to get the method (GET), the
+        -: 1723: * url (/), the referer (if given) and the user-agent (if given).  Remember to
+        -: 1724: * deallocate all these buffers.  The method will be returned in uppercase.
+        -: 1725: */
+      145: 1726:static int parse_request(struct connection *conn) {
+      145: 1727:    size_t bound1, bound2;
+      145: 1728:    char *tmp;
+     145*: 1729:    assert(conn->request_length == strlen(conn->request));
+        -: 1730:
+        -: 1731:    /* parse method */
+      588: 1732:    for (bound1 = 0;
+      588: 1733:        (bound1 < conn->request_length) &&
+      588: 1734:        (conn->request[bound1] != ' ');
+        -: 1735:        bound1++)
+        -: 1736:            ;
+        -: 1737:
+      145: 1738:    conn->method = split_string(conn->request, 0, bound1);
+      145: 1739:    strntoupper(conn->method, bound1);
+        -: 1740:
+        -: 1741:    /* parse url */
+      145: 1742:    for (;
+      290: 1743:        (bound1 < conn->request_length) &&
+      290: 1744:        (conn->request[bound1] == ' ');
+        -: 1745:        bound1++)
+        -: 1746:            ;
+        -: 1747:
+      145: 1748:    if (bound1 == conn->request_length)
+        -: 1749:        return 0; /* fail */
+        -: 1750:
+     1557: 1751:    for (bound2 = bound1 + 1;
+     1412: 1752:        (bound2 < conn->request_length) &&
+     2701: 1753:        (conn->request[bound2] != ' ') &&
+     2567: 1754:        (conn->request[bound2] != '\r') &&
+     1278: 1755:        (conn->request[bound2] != '\n');
+        -: 1756:        bound2++)
+        -: 1757:            ;
+        -: 1758:
+      145: 1759:    conn->url = split_string(conn->request, bound1, bound2);
+        -: 1760:
+        -: 1761:    /* parse protocol to determine conn_close */
+      145: 1762:    if (conn->request[bound2] == ' ') {
+        -: 1763:        char *proto;
+      246: 1764:        for (bound1 = bound2;
+      246: 1765:            (bound1 < conn->request_length) &&
+      246: 1766:            (conn->request[bound1] == ' ');
+        -: 1767:            bound1++)
+        -: 1768:                ;
+        -: 1769:
+     2107: 1770:        for (bound2 = bound1 + 1;
+     1984: 1771:            (bound2 < conn->request_length) &&
+     3867: 1772:            (conn->request[bound2] != ' ') &&
+     1883: 1773:            (conn->request[bound2] != '\r');
+        -: 1774:            bound2++)
+        -: 1775:                ;
+        -: 1776:
+      123: 1777:        proto = split_string(conn->request, bound1, bound2);
+     123*: 1778:        if (strcasecmp(proto, "HTTP/1.1") == 0)
+       11: 1779:            conn->conn_close = 0;
+      123: 1780:        free(proto);
+        -: 1781:    }
+        -: 1782:
+        -: 1783:    /* parse connection field */
+      145: 1784:    tmp = parse_field(conn, "Connection: ");
+      145: 1785:    if (tmp != NULL) {
+      123: 1786:        if (strcasecmp(tmp, "close") == 0)
+      101: 1787:            conn->conn_close = 1;
+       22: 1788:        else if (strcasecmp(tmp, "keep-alive") == 0)
+       22: 1789:            conn->conn_close = 0;
+      123: 1790:        free(tmp);
+        -: 1791:    }
+        -: 1792:
+        -: 1793:    /* cmdline flag can be used to deny keep-alive */
+      145: 1794:    if (!want_keepalive)
+    #####: 1795:        conn->conn_close = 1;
+        -: 1796:
+        -: 1797:    /* parse important fields */
+      145: 1798:    conn->referer = parse_field(conn, "Referer: ");
+      145: 1799:    conn->user_agent = parse_field(conn, "User-Agent: ");
+      145: 1800:    conn->authorization = parse_field(conn, "Authorization: ");
+      145: 1801:    parse_range_field(conn);
+      145: 1802:    return 1;
+        -: 1803:}
+        -: 1804:
+       35: 1805:static int file_exists(const char *path) {
+       35: 1806:    struct stat filestat;
+      70*: 1807:    if ((stat(path, &filestat) == -1) && (errno == ENOENT))
+        -: 1808:        return 0;
+        -: 1809:    else
+    #####: 1810:        return 1;
+        -: 1811:}
+        -: 1812:
+        -: 1813:struct dlent {
+        -: 1814:    char *name;
+        -: 1815:    int is_dir;
+        -: 1816:    off_t size;
+        -: 1817:};
+        -: 1818:
+      156: 1819:static int dlent_cmp(const void *a, const void *b) {
+     156*: 1820:    if (strcmp((*((const struct dlent * const *)a))->name, "..") == 0) {
+        -: 1821:        return -1;  /* Special-case ".." to come first. */
+        -: 1822:    }
+     156*: 1823:    return strcmp((*((const struct dlent * const *)a))->name,
+      156: 1824:                  (*((const struct dlent * const *)b))->name);
+        -: 1825:}
+        -: 1826:
+        -: 1827:/* Make sorted list of files in a directory.  Returns number of entries, or -1
+        -: 1828: * if error occurs.
+        -: 1829: */
+       34: 1830:static ssize_t make_sorted_dirlist(const char *path, struct dlent ***output) {
+       34: 1831:    DIR *dir;
+       34: 1832:    struct dirent *ent;
+       34: 1833:    size_t entries = 0;
+       34: 1834:    size_t pool = 128;
+       34: 1835:    char *currname;
+       34: 1836:    struct dlent **list = NULL;
+        -: 1837:
+      34*: 1838:    dir = opendir(path);
+       34: 1839:    if (dir == NULL)
+        -: 1840:        return -1;
+        -: 1841:
+      28*: 1842:    currname = xmalloc(strlen(path) + MAXNAMLEN + 1);
+       28: 1843:    list = xmalloc(sizeof(struct dlent*) * pool);
+        -: 1844:
+        -: 1845:    /* construct list */
+      174: 1846:    while ((ent = readdir(dir)) != NULL) {
+      146: 1847:        struct stat s;
+        -: 1848:
+      146: 1849:        if (strcmp(ent->d_name, ".") == 0)
+       28: 1850:            continue; /* skip "." */
+     118*: 1851:        assert(strlen(ent->d_name) <= MAXNAMLEN);
+     118*: 1852:        sprintf(currname, "%s%s", path, ent->d_name);
+     236*: 1853:        if (stat(currname, &s) == -1)
+    #####: 1854:            continue; /* skip un-stat-able files */
+      118: 1855:        if (entries == pool) {
+    #####: 1856:            pool *= 2;
+    #####: 1857:            list = xrealloc(list, sizeof(struct dlent*) * pool);
+        -: 1858:        }
+      118: 1859:        list[entries] = xmalloc(sizeof(struct dlent));
+      118: 1860:        list[entries]->name = xstrdup(ent->d_name);
+      118: 1861:        list[entries]->is_dir = S_ISDIR(s.st_mode);
+      118: 1862:        list[entries]->size = s.st_size;
+      118: 1863:        entries++;
+        -: 1864:    }
+       28: 1865:    closedir(dir);
+       28: 1866:    free(currname);
+      28*: 1867:    qsort(list, entries, sizeof(struct dlent*), dlent_cmp);
+       28: 1868:    *output = list;
+       28: 1869:    return (ssize_t)entries;
+        -: 1870:}
+        -: 1871:
+        -: 1872:/* Cleanly deallocate a sorted list of directory files. */
+       28: 1873:static void cleanup_sorted_dirlist(struct dlent **list, const ssize_t size) {
+       28: 1874:    ssize_t i;
+        -: 1875:
+      146: 1876:    for (i = 0; i < size; i++) {
+      118: 1877:        free(list[i]->name);
+      118: 1878:        free(list[i]);
+        -: 1879:    }
+       28: 1880:}
+        -: 1881:
+        -: 1882:/* Is this an unreserved character according to
+        -: 1883: * https://tools.ietf.org/html/rfc3986#section-2.3
+        -: 1884: */
+      680: 1885:static int is_unreserved(const unsigned char c) {
+      680: 1886:    if (c >= 'a' && c <= 'z') return 1;
+       92: 1887:    if (c >= 'A' && c <= 'Z') return 1;
+       92: 1888:    if (c >= '0' && c <= '9') return 1;
+       92: 1889:    switch (c) {
+        -: 1890:        case '-':
+        -: 1891:        case '.':
+        -: 1892:        case '_':
+        -: 1893:        case '~':
+        -: 1894:            return 1;
+        -: 1895:    }
+       34: 1896:    return 0;
+        -: 1897:}
+        -: 1898:
+        -: 1899:/* Encode string to be an RFC3986-compliant URL part.
+        -: 1900: * Contributed by nf.
+        -: 1901: */
+      118: 1902:static void urlencode(const char *src, char *dest) {
+      118: 1903:    static const char hex[] = "0123456789ABCDEF";
+      118: 1904:    int i, j;
+        -: 1905:
+      798: 1906:    for (i = j = 0; src[i] != '\0'; i++) {
+      680: 1907:        if (!is_unreserved((unsigned char)src[i])) {
+       34: 1908:            dest[j++] = '%';
+       34: 1909:            dest[j++] = hex[(src[i] >> 4) & 0xF];
+       34: 1910:            dest[j++] = hex[ src[i]       & 0xF];
+        -: 1911:        }
+        -: 1912:        else
+      646: 1913:            dest[j++] = src[i];
+        -: 1914:    }
+      118: 1915:    dest[j] = '\0';
+      118: 1916:}
+        -: 1917:
+        -: 1918:/* Escape < > & ' " into HTML entities. */
+      174: 1919:static void append_escaped(struct apbuf *dst, const char *src) {
+      174: 1920:    int pos = 0;
+      910: 1921:    while (src[pos] != '\0') {
+      736: 1922:        switch (src[pos]) {
+    #####: 1923:            case '<':
+    #####: 1924:                append(dst, "&lt;");
+    #####: 1925:                break;
+    #####: 1926:            case '>':
+    #####: 1927:                append(dst, "&gt;");
+    #####: 1928:                break;
+    #####: 1929:            case '&':
+    #####: 1930:                append(dst, "&amp;");
+    #####: 1931:                break;
+    #####: 1932:            case '\'':
+    #####: 1933:                append(dst, "&apos;");
+    #####: 1934:                break;
+    #####: 1935:            case '"':
+    #####: 1936:                append(dst, "&quot;");
+    #####: 1937:                break;
+      736: 1938:            default:
+      736: 1939:                appendl(dst, src+pos, 1);
+        -: 1940:        }
+      736: 1941:        pos++;
+        -: 1942:    }
+      174: 1943:}
+        -: 1944:
+       34: 1945:static void generate_dir_listing(struct connection *conn, const char *path,
+        -: 1946:        const char *decoded_url) {
+       34: 1947:    char date[DATE_LEN], *spaces;
+       34: 1948:    struct dlent **list;
+       34: 1949:    ssize_t listsize;
+       34: 1950:    size_t maxlen = 2; /* There has to be ".." */
+       34: 1951:    int i;
+       34: 1952:    struct apbuf *listing;
+        -: 1953:
+       34: 1954:    listsize = make_sorted_dirlist(path, &list);
+       34: 1955:    if (listsize == -1) {
+        6: 1956:        default_reply(conn, 500, "Internal Server Error",
+        6: 1957:                      "Couldn't list directory: %s", strerror(errno));
+        6: 1958:        return;
+        -: 1959:    }
+        -: 1960:
+      146: 1961:    for (i=0; i<listsize; i++) {
+     118*: 1962:        size_t tmp = strlen(list[i]->name);
+      118: 1963:        if (maxlen < tmp)
+        -: 1964:            maxlen = tmp;
+        -: 1965:    }
+        -: 1966:
+       28: 1967:    listing = make_apbuf();
+       28: 1968:    append(listing, "<html>\n<head>\n<title>");
+       28: 1969:    append_escaped(listing, decoded_url);
+       28: 1970:    append(listing,
+        -: 1971:            "</title>\n"
+        -: 1972:            "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+        -: 1973:            "</head>\n<body>\n<h1>");
+       28: 1974:    append_escaped(listing, decoded_url);
+       28: 1975:    append(listing, "</h1>\n<tt><pre>\n");
+        -: 1976:
+       28: 1977:    spaces = xmalloc(maxlen);
+      28*: 1978:    memset(spaces, ' ', maxlen);
+        -: 1979:
+      146: 1980:    for (i=0; i<listsize; i++) {
+        -: 1981:        /* If a filename is made up of entirely unsafe chars,
+        -: 1982:         * the url would be three times its original length.
+        -: 1983:         */
+      118: 1984:        char safe_url[MAXNAMLEN*3 + 1];
+        -: 1985:
+      118: 1986:        urlencode(list[i]->name, safe_url);
+        -: 1987:
+      118: 1988:        append(listing, "<a href=\"");
+      118: 1989:        append(listing, safe_url);
+      118: 1990:        if (list[i]->is_dir)
+      112: 1991:            append(listing, "/");
+      118: 1992:        append(listing, "\">");
+      118: 1993:        append_escaped(listing, list[i]->name);
+      118: 1994:        append(listing, "</a>");
+        -: 1995:
+      118: 1996:        if (list[i]->is_dir)
+      112: 1997:            append(listing, "/\n");
+        -: 1998:        else {
+       6*: 1999:            appendl(listing, spaces, maxlen-strlen(list[i]->name));
+        6: 2000:            appendf(listing, "%10llu\n", llu(list[i]->size));
+        -: 2001:        }
+        -: 2002:    }
+        -: 2003:
+       28: 2004:    cleanup_sorted_dirlist(list, listsize);
+       28: 2005:    free(list);
+       28: 2006:    free(spaces);
+        -: 2007:
+       28: 2008:    append(listing,
+        -: 2009:     "</pre></tt>\n"
+        -: 2010:     "<hr>\n");
+        -: 2011:
+       28: 2012:    rfc1123_date(date, now);
+      28*: 2013:    append(listing, generated_on(date));
+       28: 2014:    append(listing, "</body>\n</html>\n");
+        -: 2015:
+       28: 2016:    conn->reply = listing->str;
+       28: 2017:    conn->reply_length = (off_t)listing->length;
+       28: 2018:    free(listing); /* don't free inside of listing */
+        -: 2019:
+       28: 2020:    conn->header_length = xasprintf(&(conn->header),
+        -: 2021:     "HTTP/1.1 200 OK\r\n"
+        -: 2022:     "Date: %s\r\n"
+        -: 2023:     "%s" /* server */
+        -: 2024:     "Accept-Ranges: bytes\r\n"
+        -: 2025:     "%s" /* keep-alive */
+        -: 2026:     "Content-Length: %llu\r\n"
+        -: 2027:     "Content-Type: text/html; charset=UTF-8\r\n"
+        -: 2028:     "\r\n",
+       28: 2029:     date, server_hdr, keep_alive(conn), llu(conn->reply_length));
+        -: 2030:
+       28: 2031:    conn->reply_type = REPLY_GENERATED;
+       28: 2032:    conn->http_code = 200;
+        -: 2033:}
+        -: 2034:
+        -: 2035:/* Process a GET/HEAD request. */
+      141: 2036:static void process_get(struct connection *conn) {
+      141: 2037:    char *decoded_url, *end, *target, *if_mod_since;
+      141: 2038:    char date[DATE_LEN], lastmod[DATE_LEN];
+      141: 2039:    const char *mimetype = NULL;
+      141: 2040:    const char *forward_to = NULL;
+      141: 2041:    struct stat filestat;
+        -: 2042:
+        -: 2043:    /* strip out query params */
+     141*: 2044:    if ((end = strchr(conn->url, '?')) != NULL)
+        6: 2045:        *end = '\0';
+        -: 2046:
+        -: 2047:    /* work out path of file being requested */
+      141: 2048:    decoded_url = urldecode(conn->url);
+        -: 2049:
+        -: 2050:    /* make sure it's safe */
+      141: 2051:    if (make_safe_url(decoded_url) == NULL) {
+       18: 2052:        default_reply(conn, 400, "Bad Request",
+        -: 2053:                      "You requested an invalid URL.");
+       18: 2054:        free(decoded_url);
+       86: 2055:        return;
+        -: 2056:    }
+        -: 2057:
+        -: 2058:    /* test the host against web forward options */
+      123: 2059:    if (forward_map) {
+        4: 2060:        char *host = parse_field(conn, "Host: ");
+        4: 2061:        if (host) {
+        4: 2062:            size_t i;
+        4: 2063:            if (debug)
+        4: 2064:                printf("host=\"%s\"\n", host);
+       11: 2065:            for (i = 0; i < forward_map_size; i++) {
+       5*: 2066:                if (strcasecmp(forward_map[i].host, host) == 0) {
+        2: 2067:                    forward_to = forward_map[i].target_url;
+        2: 2068:                    break;
+        -: 2069:                }
+        -: 2070:            }
+        4: 2071:            free(host);
+        -: 2072:        }
+        -: 2073:    }
+        4: 2074:    if (!forward_to) {
+      121: 2075:        forward_to = forward_all_url;
+        -: 2076:    }
+      123: 2077:    if (forward_to) {
+        4: 2078:        redirect(conn, "%s%s", forward_to, decoded_url);
+        4: 2079:        free(decoded_url);
+        4: 2080:        return;
+        -: 2081:    }
+        -: 2082:
+        -: 2083:    /* does it end in a slash? serve up url/index_name */
+     119*: 2084:    if (decoded_url[strlen(decoded_url)-1] == '/') {
+       35: 2085:        xasprintf(&target, "%s%s%s", wwwroot, decoded_url, index_name);
+       35: 2086:        if (!file_exists(target)) {
+       35: 2087:            free(target);
+       35: 2088:            if (no_listing) {
+        1: 2089:                free(decoded_url);
+        -: 2090:                /* Return 404 instead of 403 to make --no-listing
+        -: 2091:                 * indistinguishable from the directory not existing.
+        -: 2092:                 * i.e.: Don't leak information.
+        -: 2093:                 */
+        1: 2094:                default_reply(conn, 404, "Not Found",
+        -: 2095:                    "The URL you requested was not found.");
+        1: 2096:                return;
+        -: 2097:            }
+       34: 2098:            xasprintf(&target, "%s%s", wwwroot, decoded_url);
+       34: 2099:            generate_dir_listing(conn, target, decoded_url);
+       34: 2100:            free(target);
+       34: 2101:            free(decoded_url);
+       34: 2102:            return;
+        -: 2103:        }
+    #####: 2104:        mimetype = url_content_type(index_name);
+        -: 2105:    }
+        -: 2106:    else {
+        -: 2107:        /* points to a file */
+       84: 2108:        xasprintf(&target, "%s%s", wwwroot, decoded_url);
+       84: 2109:        mimetype = url_content_type(decoded_url);
+        -: 2110:    }
+       84: 2111:    free(decoded_url);
+       84: 2112:    if (debug)
+       84: 2113:        printf("url=\"%s\", target=\"%s\", content-type=\"%s\"\n",
+        -: 2114:               conn->url, target, mimetype);
+        -: 2115:
+        -: 2116:    /* open file */
+     168*: 2117:    conn->reply_fd = open(target, O_RDONLY | O_NONBLOCK);
+       84: 2118:    free(target);
+        -: 2119:
+       84: 2120:    if (conn->reply_fd == -1) {
+        -: 2121:        /* open() failed */
+       18: 2122:        if (errno == EACCES)
+        6: 2123:            default_reply(conn, 403, "Forbidden",
+        -: 2124:                "You don't have permission to access this URL.");
+       12: 2125:        else if (errno == ENOENT)
+       12: 2126:            default_reply(conn, 404, "Not Found",
+        -: 2127:                "The URL you requested was not found.");
+        -: 2128:        else
+    #####: 2129:            default_reply(conn, 500, "Internal Server Error",
+        -: 2130:                "The URL you requested cannot be returned: %s.",
+        -: 2131:                strerror(errno));
+        -: 2132:
+       18: 2133:        return;
+        -: 2134:    }
+        -: 2135:
+        -: 2136:    /* stat the file */
+       66: 2137:    if (fstat(conn->reply_fd, &filestat) == -1) {
+    #####: 2138:        default_reply(conn, 500, "Internal Server Error",
+    #####: 2139:            "fstat() failed: %s.", strerror(errno));
+    #####: 2140:        return;
+        -: 2141:    }
+        -: 2142:
+        -: 2143:    /* make sure it's a regular file */
+       66: 2144:    if (S_ISDIR(filestat.st_mode)) {
+        1: 2145:        redirect(conn, "%s/", conn->url);
+        1: 2146:        return;
+        -: 2147:    }
+       65: 2148:    else if (!S_ISREG(filestat.st_mode)) {
+    #####: 2149:        default_reply(conn, 403, "Forbidden", "Not a regular file.");
+    #####: 2150:        return;
+        -: 2151:    }
+        -: 2152:
+       65: 2153:    conn->reply_type = REPLY_FROMFILE;
+       65: 2154:    rfc1123_date(lastmod, filestat.st_mtime);
+        -: 2155:
+        -: 2156:    /* check for If-Modified-Since, may not have to send */
+       65: 2157:    if_mod_since = parse_field(conn, "If-Modified-Since: ");
+       65: 2158:    if ((if_mod_since != NULL) &&
+        2: 2159:            (strcmp(if_mod_since, lastmod) == 0)) {
+        2: 2160:        if (debug)
+        2: 2161:            printf("not modified since %s\n", if_mod_since);
+        2: 2162:        conn->http_code = 304;
+        4: 2163:        conn->header_length = xasprintf(&(conn->header),
+        -: 2164:         "HTTP/1.1 304 Not Modified\r\n"
+        -: 2165:         "Date: %s\r\n"
+        -: 2166:         "%s" /* server */
+        -: 2167:         "Accept-Ranges: bytes\r\n"
+        -: 2168:         "%s" /* keep-alive */
+        -: 2169:         "\r\n",
+        -: 2170:         rfc1123_date(date, now), server_hdr, keep_alive(conn));
+        2: 2171:        conn->reply_length = 0;
+        2: 2172:        conn->reply_type = REPLY_GENERATED;
+        2: 2173:        conn->header_only = 1;
+        -: 2174:
+        2: 2175:        free(if_mod_since);
+        2: 2176:        return;
+        -: 2177:    }
+       63: 2178:    free(if_mod_since);
+        -: 2179:
+       63: 2180:    if (conn->range_begin_given || conn->range_end_given) {
+       38: 2181:        off_t from, to;
+        -: 2182:
+       38: 2183:        if (conn->range_begin_given && conn->range_end_given) {
+        -: 2184:            /* 100-200 */
+       30: 2185:            from = conn->range_begin;
+       30: 2186:            to = conn->range_end;
+        -: 2187:
+        -: 2188:            /* clamp end to filestat.st_size-1 */
+       30: 2189:            if (to > (filestat.st_size - 1))
+        4: 2190:                to = filestat.st_size - 1;
+        -: 2191:        }
+        8: 2192:        else if (conn->range_begin_given && !conn->range_end_given) {
+        -: 2193:            /* 100- :: yields 100 to end */
+        4: 2194:            from = conn->range_begin;
+        4: 2195:            to = filestat.st_size - 1;
+        -: 2196:        }
+        4: 2197:        else if (!conn->range_begin_given && conn->range_end_given) {
+        -: 2198:            /* -200 :: yields last 200 */
+        4: 2199:            to = filestat.st_size - 1;
+        4: 2200:            from = to - conn->range_end + 1;
+        -: 2201:
+        -: 2202:            /* clamp start */
+        4: 2203:            if (from < 0)
+        -: 2204:                from = 0;
+        -: 2205:        }
+        -: 2206:        else
+    #####: 2207:            errx(1, "internal error - from/to mismatch");
+        -: 2208:
+       38: 2209:        if (from >= filestat.st_size) {
+        4: 2210:            default_reply(conn, 416, "Requested Range Not Satisfiable",
+        -: 2211:                "You requested a range outside of the file.");
+        4: 2212:            return;
+        -: 2213:        }
+        -: 2214:
+       34: 2215:        if (to < from) {
+        4: 2216:            default_reply(conn, 416, "Requested Range Not Satisfiable",
+        -: 2217:                "You requested a backward range.");
+        4: 2218:            return;
+        -: 2219:        }
+        -: 2220:
+       30: 2221:        conn->reply_start = from;
+       30: 2222:        conn->reply_length = to - from + 1;
+        -: 2223:
+       60: 2224:        conn->header_length = xasprintf(&(conn->header),
+        -: 2225:            "HTTP/1.1 206 Partial Content\r\n"
+        -: 2226:            "Date: %s\r\n"
+        -: 2227:            "%s" /* server */
+        -: 2228:            "Accept-Ranges: bytes\r\n"
+        -: 2229:            "%s" /* keep-alive */
+        -: 2230:            "Content-Length: %llu\r\n"
+        -: 2231:            "Content-Range: bytes %llu-%llu/%llu\r\n"
+        -: 2232:            "Content-Type: %s\r\n"
+        -: 2233:            "Last-Modified: %s\r\n"
+        -: 2234:            "\r\n"
+        -: 2235:            ,
+        -: 2236:            rfc1123_date(date, now), server_hdr, keep_alive(conn),
+       30: 2237:            llu(conn->reply_length), llu(from), llu(to),
+        -: 2238:            llu(filestat.st_size), mimetype, lastmod
+        -: 2239:        );
+       30: 2240:        conn->http_code = 206;
+       30: 2241:        if (debug)
+       55: 2242:            printf("sending %llu-%llu/%llu\n",
+       30: 2243:                   llu(from), llu(to), llu(filestat.st_size));
+        -: 2244:    }
+        -: 2245:    else {
+        -: 2246:        /* no range stuff */
+       25: 2247:        conn->reply_length = filestat.st_size;
+       50: 2248:        conn->header_length = xasprintf(&(conn->header),
+        -: 2249:            "HTTP/1.1 200 OK\r\n"
+        -: 2250:            "Date: %s\r\n"
+        -: 2251:            "%s" /* server */
+        -: 2252:            "Accept-Ranges: bytes\r\n"
+        -: 2253:            "%s" /* keep-alive */
+        -: 2254:            "Content-Length: %llu\r\n"
+        -: 2255:            "Content-Type: %s\r\n"
+        -: 2256:            "Last-Modified: %s\r\n"
+        -: 2257:            "\r\n"
+        -: 2258:            ,
+        -: 2259:            rfc1123_date(date, now), server_hdr, keep_alive(conn),
+       25: 2260:            llu(conn->reply_length), mimetype, lastmod
+        -: 2261:        );
+       25: 2262:        conn->http_code = 200;
+        -: 2263:    }
+        -: 2264:}
+        -: 2265:
+        -: 2266:/* Process a request: build the header and reply, advance state. */
+      145: 2267:static void process_request(struct connection *conn) {
+      145: 2268:    num_requests++;
+        -: 2269:
+      145: 2270:    if (!parse_request(conn)) {
+    #####: 2271:        default_reply(conn, 400, "Bad Request",
+        -: 2272:            "You sent a request that the server couldn't understand.");
+        -: 2273:    }
+      145: 2274:    else if (is_https_redirect(conn)) {
+        1: 2275:        redirect_https(conn);
+        -: 2276:    }
+        -: 2277:    /* fail if: (auth_enabled) AND (client supplied invalid credentials) */
+      144: 2278:    else if (auth_key != NULL &&
+        3: 2279:            (conn->authorization == NULL ||
+        2: 2280:             strcmp(conn->authorization, auth_key)))
+        -: 2281:    {
+        2: 2282:        default_reply(conn, 401, "Unauthorized",
+        -: 2283:            "Access denied due to invalid credentials.");
+        -: 2284:    }
+     142*: 2285:    else if (strcmp(conn->method, "GET") == 0) {
+      135: 2286:        process_get(conn);
+        -: 2287:    }
+       7*: 2288:    else if (strcmp(conn->method, "HEAD") == 0) {
+        6: 2289:        process_get(conn);
+        6: 2290:        conn->header_only = 1;
+        -: 2291:    }
+        -: 2292:    else {
+        1: 2293:        default_reply(conn, 501, "Not Implemented",
+        -: 2294:                      "The method you specified is not implemented.");
+        -: 2295:    }
+        -: 2296:
+        -: 2297:    /* advance state */
+      145: 2298:    conn->state = SEND_HEADER;
+        -: 2299:
+        -: 2300:    /* request not needed anymore */
+      145: 2301:    free(conn->request);
+      145: 2302:    conn->request = NULL; /* important: don't free it again later */
+      145: 2303:}
+        -: 2304:
+        -: 2305:/* Receiving request. */
+      311: 2306:static void poll_recv_request(struct connection *conn) {
+      311: 2307:    char buf[1<<15];
+      311: 2308:    ssize_t recvd;
+        -: 2309:
+     311*: 2310:    assert(conn->state == RECV_REQUEST);
+      311: 2311:    recvd = recv(conn->socket, buf, sizeof(buf), 0);
+      311: 2312:    if (debug)
+      311: 2313:        printf("poll_recv_request(%d) got %d bytes\n",
+        -: 2314:               conn->socket, (int)recvd);
+      311: 2315:    if (recvd < 1) {
+      166: 2316:        if (recvd == -1) {
+      145: 2317:            if (errno == EAGAIN) {
+      145: 2318:                if (debug) printf("poll_recv_request would have blocked\n");
+      311: 2319:                return;
+        -: 2320:            }
+    #####: 2321:            if (debug) printf("recv(%d) error: %s\n",
+        -: 2322:                conn->socket, strerror(errno));
+        -: 2323:        }
+       21: 2324:        conn->conn_close = 1;
+       21: 2325:        conn->state = DONE;
+       21: 2326:        return;
+        -: 2327:    }
+      145: 2328:    conn->last_active = now;
+        -: 2329:
+        -: 2330:    /* append to conn->request */
+      145: 2331:    assert(recvd > 0);
+      145: 2332:    conn->request = xrealloc(
+      145: 2333:        conn->request, conn->request_length + (size_t)recvd + 1);
+     145*: 2334:    memcpy(conn->request+conn->request_length, buf, (size_t)recvd);
+      145: 2335:    conn->request_length += (size_t)recvd;
+      145: 2336:    conn->request[conn->request_length] = 0;
+      145: 2337:    total_in += (size_t)recvd;
+        -: 2338:
+        -: 2339:    /* process request if we have all of it */
+      145: 2340:    if ((conn->request_length > 2) &&
+     145*: 2341:        (memcmp(conn->request+conn->request_length-2, "\n\n", 2) == 0))
+      112: 2342:            process_request(conn);
+       33: 2343:    else if ((conn->request_length > 4) &&
+      33*: 2344:        (memcmp(conn->request+conn->request_length-4, "\r\n\r\n", 4) == 0))
+       33: 2345:            process_request(conn);
+        -: 2346:
+        -: 2347:    /* die if it's too large */
+      145: 2348:    if (conn->request_length > MAX_REQUEST_LENGTH) {
+    #####: 2349:        default_reply(conn, 413, "Request Entity Too Large",
+        -: 2350:                      "Your request was dropped because it was too long.");
+    #####: 2351:        conn->state = SEND_HEADER;
+        -: 2352:    }
+        -: 2353:
+        -: 2354:    /* if we've moved on to the next state, try to send right away, instead of
+        -: 2355:     * going through another iteration of the select() loop.
+        -: 2356:     */
+      145: 2357:    if (conn->state == SEND_HEADER)
+      145: 2358:        poll_send_header(conn);
+        -: 2359:}
+        -: 2360:
+        -: 2361:/* Sending header.  Assumes conn->header is not NULL. */
+      145: 2362:static void poll_send_header(struct connection *conn) {
+      145: 2363:    ssize_t sent;
+        -: 2364:
+     145*: 2365:    assert(conn->state == SEND_HEADER);
+     145*: 2366:    assert(conn->header_length == strlen(conn->header));
+        -: 2367:
+      145: 2368:    sent = send(conn->socket,
+      145: 2369:                conn->header + conn->header_sent,
+      145: 2370:                conn->header_length - conn->header_sent,
+        -: 2371:                0);
+      145: 2372:    conn->last_active = now;
+      145: 2373:    if (debug)
+      145: 2374:        printf("poll_send_header(%d) sent %d bytes\n",
+        -: 2375:               conn->socket, (int)sent);
+        -: 2376:
+        -: 2377:    /* handle any errors (-1) or closure (0) in send() */
+      145: 2378:    if (sent < 1) {
+    #####: 2379:        if ((sent == -1) && (errno == EAGAIN)) {
+    #####: 2380:            if (debug) printf("poll_send_header would have blocked\n");
+    #####: 2381:            return;
+        -: 2382:        }
+    #####: 2383:        if (debug && (sent == -1))
+    #####: 2384:            printf("send(%d) error: %s\n", conn->socket, strerror(errno));
+    #####: 2385:        conn->conn_close = 1;
+    #####: 2386:        conn->state = DONE;
+    #####: 2387:        return;
+        -: 2388:    }
+      145: 2389:    assert(sent > 0);
+      145: 2390:    conn->header_sent += (size_t)sent;
+      145: 2391:    conn->total_sent += (size_t)sent;
+      145: 2392:    total_out += (size_t)sent;
+        -: 2393:
+        -: 2394:    /* check if we're done sending header */
+      145: 2395:    if (conn->header_sent == conn->header_length) {
+      145: 2396:        if (conn->header_only)
+        8: 2397:            conn->state = DONE;
+        -: 2398:        else {
+      137: 2399:            conn->state = SEND_REPLY;
+        -: 2400:            /* go straight on to body, don't go through another iteration of
+        -: 2401:             * the select() loop.
+        -: 2402:             */
+      137: 2403:            poll_send_reply(conn);
+        -: 2404:        }
+        -: 2405:    }
+        -: 2406:}
+        -: 2407:
+        -: 2408:/* Send chunk on socket <s> from FILE *fp, starting at <ofs> and of size
+        -: 2409: * <size>.  Use sendfile() if possible since it's zero-copy on some platforms.
+        -: 2410: * Returns the number of bytes sent, 0 on closure, -1 if send() failed, -2 if
+        -: 2411: * read error.
+        -: 2412: */
+       49: 2413:static ssize_t send_from_file(const int s, const int fd,
+        -: 2414:        off_t ofs, size_t size) {
+        -: 2415:#ifdef __FreeBSD__
+        -: 2416:    off_t sent;
+        -: 2417:    int ret = sendfile(fd, s, ofs, size, NULL, &sent, 0);
+        -: 2418:
+        -: 2419:    /* It is possible for sendfile to send zero bytes due to a blocking
+        -: 2420:     * condition.  Handle this correctly.
+        -: 2421:     */
+        -: 2422:    if (ret == -1)
+        -: 2423:        if (errno == EAGAIN)
+        -: 2424:            if (sent == 0)
+        -: 2425:                return -1;
+        -: 2426:            else
+        -: 2427:                return sent;
+        -: 2428:        else
+        -: 2429:            return -1;
+        -: 2430:    else
+        -: 2431:        return size;
+        -: 2432:#else
+        -: 2433:#if defined(__linux) || defined(__sun__)
+        -: 2434:    /* Limit truly ridiculous (LARGEFILE) requests. */
+       49: 2435:    if (size > 1<<20)
+        -: 2436:        size = 1<<20;
+       49: 2437:    return sendfile(s, fd, &ofs, size);
+        -: 2438:#else
+        -: 2439:    /* Fake sendfile() with read(). */
+        -: 2440:# ifndef min
+        -: 2441:#  define min(a,b) ( ((a)<(b)) ? (a) : (b) )
+        -: 2442:# endif
+        -: 2443:    char buf[1<<15];
+        -: 2444:    size_t amount = min(sizeof(buf), size);
+        -: 2445:    ssize_t numread;
+        -: 2446:
+        -: 2447:    if (lseek(fd, ofs, SEEK_SET) == -1)
+        -: 2448:        err(1, "fseek(%d)", (int)ofs);
+        -: 2449:    numread = read(fd, buf, amount);
+        -: 2450:    if (numread == 0) {
+        -: 2451:        fprintf(stderr, "premature eof on fd %d\n", fd);
+        -: 2452:        return -1;
+        -: 2453:    }
+        -: 2454:    else if (numread == -1) {
+        -: 2455:        fprintf(stderr, "error reading on fd %d: %s", fd, strerror(errno));
+        -: 2456:        return -1;
+        -: 2457:    }
+        -: 2458:    else if ((size_t)numread != amount) {
+        -: 2459:        fprintf(stderr, "read %zd bytes, expecting %zu bytes on fd %d\n",
+        -: 2460:            numread, amount, fd);
+        -: 2461:        return -1;
+        -: 2462:    }
+        -: 2463:    else
+        -: 2464:        return send(s, buf, amount, 0);
+        -: 2465:#endif
+        -: 2466:#endif
+        -: 2467:}
+        -: 2468:
+        -: 2469:/* Sending reply. */
+      137: 2470:static void poll_send_reply(struct connection *conn)
+        -: 2471:{
+      137: 2472:    ssize_t sent;
+        -: 2473:    /* off_t can be wider than size_t, avoid overflow in send_len */
+      137: 2474:    const size_t max_size_t = ~((size_t)0);
+      137: 2475:    off_t send_len = conn->reply_length - conn->reply_sent;
+      137: 2476:    if (send_len > max_size_t) send_len = max_size_t;
+        -: 2477:
+     137*: 2478:    assert(conn->state == SEND_REPLY);
+     137*: 2479:    assert(!conn->header_only);
+      137: 2480:    if (conn->reply_type == REPLY_GENERATED) {
+      88*: 2481:        assert(conn->reply_length >= conn->reply_sent);
+       88: 2482:        sent = send(conn->socket,
+       88: 2483:            conn->reply + conn->reply_start + conn->reply_sent,
+        -: 2484:            (size_t)send_len, 0);
+        -: 2485:    }
+        -: 2486:    else {
+       49: 2487:        errno = 0;
+      49*: 2488:        assert(conn->reply_length >= conn->reply_sent);
+       49: 2489:        sent = send_from_file(conn->socket, conn->reply_fd,
+       49: 2490:            conn->reply_start + conn->reply_sent, (size_t)send_len);
+       49: 2491:        if (debug && (sent < 1))
+    #####: 2492:            printf("send_from_file returned %lld (errno=%d %s)\n",
+        -: 2493:                (long long)sent, errno, strerror(errno));
+        -: 2494:    }
+      137: 2495:    conn->last_active = now;
+      137: 2496:    if (debug)
+      137: 2497:        printf("poll_send_reply(%d) sent %d: %llu+[%llu-%llu] of %llu\n",
+      137: 2498:               conn->socket, (int)sent, llu(conn->reply_start),
+      137: 2499:               llu(conn->reply_sent), llu(conn->reply_sent + sent - 1),
+      137: 2500:               llu(conn->reply_length));
+        -: 2501:
+        -: 2502:    /* handle any errors (-1) or closure (0) in send() */
+      137: 2503:    if (sent < 1) {
+    #####: 2504:        if (sent == -1) {
+    #####: 2505:            if (errno == EAGAIN) {
+    #####: 2506:                if (debug)
+    #####: 2507:                    printf("poll_send_reply would have blocked\n");
+    #####: 2508:                return;
+        -: 2509:            }
+    #####: 2510:            if (debug)
+    #####: 2511:                printf("send(%d) error: %s\n", conn->socket, strerror(errno));
+        -: 2512:        }
+    #####: 2513:        else if (sent == 0) {
+    #####: 2514:            if (debug)
+    #####: 2515:                printf("send(%d) closure\n", conn->socket);
+        -: 2516:        }
+    #####: 2517:        conn->conn_close = 1;
+    #####: 2518:        conn->state = DONE;
+    #####: 2519:        return;
+        -: 2520:    }
+      137: 2521:    conn->reply_sent += sent;
+      137: 2522:    conn->total_sent += (size_t)sent;
+      137: 2523:    total_out += (size_t)sent;
+        -: 2524:
+        -: 2525:    /* check if we're done sending */
+      137: 2526:    if (conn->reply_sent == conn->reply_length)
+      137: 2527:        conn->state = DONE;
+        -: 2528:}
+        -: 2529:
+        -: 2530:/* Main loop of the httpd - a select() and then delegation to accept
+        -: 2531: * connections, handle receiving of requests, and sending of replies.
+        -: 2532: */
+      321: 2533:static void httpd_poll(void) {
+      321: 2534:    fd_set recv_set, send_set;
+      321: 2535:    int max_fd, select_ret;
+      321: 2536:    struct connection *conn, *next;
+      321: 2537:    int bother_with_timeout = 0;
+      321: 2538:    struct timeval timeout, t0, t1;
+        -: 2539:
+      321: 2540:    timeout.tv_sec = timeout_secs;
+      321: 2541:    timeout.tv_usec = 0;
+        -: 2542:
+      321: 2543:    FD_ZERO(&recv_set);
+      321: 2544:    FD_ZERO(&send_set);
+      321: 2545:    max_fd = 0;
+        -: 2546:
+        -: 2547:    /* set recv/send fd_sets */
+        -: 2548:#define MAX_FD_SET(sock, fdset) do { FD_SET(sock,fdset); \
+        -: 2549:                                max_fd = (max_fd<sock) ? sock : max_fd; } \
+        -: 2550:                                while (0)
+     321*: 2551:    if (accepting) MAX_FD_SET(sockin, &recv_set);
+        -: 2552:
+      488: 2553:    LIST_FOREACH_SAFE(conn, &connlist, entries, next) {
+      167: 2554:        switch (conn->state) {
+        -: 2555:        case DONE:
+        -: 2556:            /* do nothing, no connection should be left in this state */
+        -: 2557:            break;
+        -: 2558:
+      167: 2559:        case RECV_REQUEST:
+     167*: 2560:            MAX_FD_SET(conn->socket, &recv_set);
+      167: 2561:            bother_with_timeout = 1;
+      167: 2562:            break;
+        -: 2563:
+    #####: 2564:        case SEND_HEADER:
+        -: 2565:        case SEND_REPLY:
+    #####: 2566:            MAX_FD_SET(conn->socket, &send_set);
+    #####: 2567:            bother_with_timeout = 1;
+    #####: 2568:            break;
+        -: 2569:        }
+        -: 2570:    }
+        -: 2571:#undef MAX_FD_SET
+        -: 2572:
+        -: 2573:#if defined(__has_feature)
+        -: 2574:# if __has_feature(memory_sanitizer)
+        -: 2575:    __msan_unpoison(&recv_set, sizeof(recv_set));
+        -: 2576:    __msan_unpoison(&send_set, sizeof(send_set));
+        -: 2577:# endif
+        -: 2578:#endif
+        -: 2579:
+        -: 2580:    /* -select- */
+      321: 2581:    if (timeout_secs == 0) {
+        -: 2582:        bother_with_timeout = 0;
+        -: 2583:    }
+      321: 2584:    if (debug) {
+      321: 2585:        printf("select() with max_fd %d timeout %d\n",
+      167: 2586:                max_fd, bother_with_timeout ? (int)timeout.tv_sec : 0);
+      321: 2587:        gettimeofday(&t0, NULL);
+        -: 2588:    }
+      475: 2589:    select_ret = select(max_fd + 1, &recv_set, &send_set, NULL,
+        -: 2590:        (bother_with_timeout) ? &timeout : NULL);
+      321: 2591:    if (select_ret == 0) {
+        1: 2592:        if (!bother_with_timeout)
+    #####: 2593:            errx(1, "select() timed out");
+        -: 2594:    }
+      321: 2595:    if (select_ret == -1) {
+        9: 2596:        if (errno == EINTR)
+        9: 2597:            return; /* interrupted by signal */
+        -: 2598:        else
+    #####: 2599:            err(1, "select() failed");
+        -: 2600:    }
+      312: 2601:    if (debug) {
+      312: 2602:        long long sec, usec;
+      312: 2603:        gettimeofday(&t1, NULL);
+      312: 2604:        sec = t1.tv_sec - t0.tv_sec;
+      312: 2605:        usec = t1.tv_usec - t0.tv_usec;
+      312: 2606:        if (usec < 0) {
+    #####: 2607:            usec += 1000000;
+    #####: 2608:            sec--;
+        -: 2609:        }
+      312: 2610:        printf("select() returned %d after %lld.%06lld secs\n",
+        -: 2611:                select_ret, sec, usec);
+        -: 2612:    }
+        -: 2613:
+        -: 2614:    /* update time */
+      312: 2615:    now = time(NULL);
+        -: 2616:
+        -: 2617:    /* poll connections that select() says need attention */
+     312*: 2618:    if (FD_ISSET(sockin, &recv_set))
+      145: 2619:        accept_connection();
+        -: 2620:
+      624: 2621:    LIST_FOREACH_SAFE(conn, &connlist, entries, next) {
+      312: 2622:        poll_check_timeout(conn);
+      312: 2623:        switch (conn->state) {
+      311: 2624:        case RECV_REQUEST:
+     311*: 2625:            if (FD_ISSET(conn->socket, &recv_set)) poll_recv_request(conn);
+        -: 2626:            break;
+        -: 2627:
+    #####: 2628:        case SEND_HEADER:
+    #####: 2629:            if (FD_ISSET(conn->socket, &send_set)) poll_send_header(conn);
+        -: 2630:            break;
+        -: 2631:
+    #####: 2632:        case SEND_REPLY:
+    #####: 2633:            if (FD_ISSET(conn->socket, &send_set)) poll_send_reply(conn);
+        -: 2634:            break;
+        -: 2635:
+        -: 2636:        case DONE:
+        -: 2637:            /* (handled later; ignore for now as it's a valid state) */
+        -: 2638:            break;
+        -: 2639:        }
+        -: 2640:
+        -: 2641:        /* Handling SEND_REPLY could have set the state to done. */
+      312: 2642:        if (conn->state == DONE) {
+        -: 2643:            /* clean out finished connection */
+      167: 2644:            if (conn->conn_close) {
+     145*: 2645:                LIST_REMOVE(conn, entries);
+      145: 2646:                free_connection(conn);
+      145: 2647:                free(conn);
+        -: 2648:            } else {
+       22: 2649:                recycle_connection(conn);
+        -: 2650:            }
+        -: 2651:        }
+        -: 2652:    }
+        -: 2653:}
+        -: 2654:
+        -: 2655:/* Daemonize helpers. */
+        -: 2656:#define PATH_DEVNULL "/dev/null"
+        -: 2657:static int lifeline[2] = { -1, -1 };
+        -: 2658:static int fd_null = -1;
+        -: 2659:
+    #####: 2660:static void daemonize_start(void) {
+    #####: 2661:    pid_t f;
+        -: 2662:
+    #####: 2663:    if (pipe(lifeline) == -1)
+    #####: 2664:        err(1, "pipe(lifeline)");
+        -: 2665:
+    #####: 2666:    fd_null = open(PATH_DEVNULL, O_RDWR, 0);
+    #####: 2667:    if (fd_null == -1)
+    #####: 2668:        err(1, "open(" PATH_DEVNULL ")");
+        -: 2669:
+    #####: 2670:    f = fork();
+    #####: 2671:    if (f == -1)
+    #####: 2672:        err(1, "fork");
+    #####: 2673:    else if (f != 0) {
+        -: 2674:        /* parent: wait for child */
+    #####: 2675:        char tmp[1];
+    #####: 2676:        int status;
+    #####: 2677:        pid_t w;
+        -: 2678:
+    #####: 2679:        if (close(lifeline[1]) == -1)
+    #####: 2680:            warn("close lifeline in parent");
+    #####: 2681:        if (read(lifeline[0], tmp, sizeof(tmp)) == -1)
+    #####: 2682:            warn("read lifeline in parent");
+    #####: 2683:        w = waitpid(f, &status, WNOHANG);
+    #####: 2684:        if (w == -1)
+    #####: 2685:            err(1, "waitpid");
+    #####: 2686:        else if (w == 0)
+        -: 2687:            /* child is running happily */
+    #####: 2688:            exit(EXIT_SUCCESS);
+        -: 2689:        else
+        -: 2690:            /* child init failed, pass on its exit status */
+    #####: 2691:            exit(WEXITSTATUS(status));
+        -: 2692:    }
+        -: 2693:    /* else we are the child: continue initializing */
+    #####: 2694:}
+        -: 2695:
+    #####: 2696:static void daemonize_finish(void) {
+    #####: 2697:    if (fd_null == -1)
+        -: 2698:        return; /* didn't daemonize_start() so we're not daemonizing */
+        -: 2699:
+    #####: 2700:    if (setsid() == -1)
+    #####: 2701:        err(1, "setsid");
+    #####: 2702:    if (close(lifeline[0]) == -1)
+    #####: 2703:        warn("close read end of lifeline in child");
+    #####: 2704:    if (close(lifeline[1]) == -1)
+    #####: 2705:        warn("couldn't cut the lifeline");
+        -: 2706:
+        -: 2707:    /* close all our std fds */
+    #####: 2708:    if (dup2(fd_null, STDIN_FILENO) == -1)
+    #####: 2709:        warn("dup2(stdin)");
+    #####: 2710:    if (dup2(fd_null, STDOUT_FILENO) == -1)
+    #####: 2711:        warn("dup2(stdout)");
+    #####: 2712:    if (dup2(fd_null, STDERR_FILENO) == -1)
+    #####: 2713:        warn("dup2(stderr)");
+    #####: 2714:    if (fd_null > 2)
+    #####: 2715:        close(fd_null);
+        -: 2716:}
+        -: 2717:
+        -: 2718:/* [->] pidfile helpers, based on FreeBSD src/lib/libutil/pidfile.c,v 1.3
+        -: 2719: * Original was copyright (c) 2005 Pawel Jakub Dawidek <pjd@FreeBSD.org>
+        -: 2720: */
+        -: 2721:static int pidfile_fd = -1;
+        -: 2722:#define PIDFILE_MODE 0600
+        -: 2723:
+    #####: 2724:static void pidfile_remove(void) {
+    #####: 2725:    if (unlink(pidfile_name) == -1)
+    #####: 2726:        err(1, "unlink(pidfile) failed");
+        -: 2727: /* if (flock(pidfile_fd, LOCK_UN) == -1)
+        -: 2728:        err(1, "unlock(pidfile) failed"); */
+    #####: 2729:    xclose(pidfile_fd);
+    #####: 2730:    pidfile_fd = -1;
+    #####: 2731:}
+        -: 2732:
+    #####: 2733:static int pidfile_read(void) {
+    #####: 2734:    char buf[16];
+    #####: 2735:    int fd, i;
+    #####: 2736:    long long pid;
+        -: 2737:
+    #####: 2738:    fd = open(pidfile_name, O_RDONLY);
+    #####: 2739:    if (fd == -1)
+    #####: 2740:        err(1, " after create failed");
+        -: 2741:
+    #####: 2742:    i = (int)read(fd, buf, sizeof(buf) - 1);
+    #####: 2743:    if (i == -1)
+    #####: 2744:        err(1, "read from pidfile failed");
+    #####: 2745:    xclose(fd);
+    #####: 2746:    buf[i] = '\0';
+        -: 2747:
+    #####: 2748:    if (!str_to_num(buf, &pid)) {
+    #####: 2749:        err(1, "invalid pidfile contents: \"%s\"", buf);
+        -: 2750:    }
+    #####: 2751:    return (int)pid;
+        -: 2752:}
+        -: 2753:
+    #####: 2754:static void pidfile_create(void) {
+    #####: 2755:    int error, fd;
+    #####: 2756:    char pidstr[16];
+        -: 2757:
+        -: 2758:    /* Open the PID file and obtain exclusive lock. */
+    #####: 2759:    fd = open(pidfile_name,
+        -: 2760:        O_WRONLY | O_CREAT | O_EXLOCK | O_TRUNC | O_NONBLOCK, PIDFILE_MODE);
+    #####: 2761:    if (fd == -1) {
+    #####: 2762:        if ((errno == EWOULDBLOCK) || (errno == EEXIST))
+    #####: 2763:            errx(1, "daemon already running with PID %d", pidfile_read());
+        -: 2764:        else
+    #####: 2765:            err(1, "can't create pidfile %s", pidfile_name);
+        -: 2766:    }
+    #####: 2767:    pidfile_fd = fd;
+        -: 2768:
+    #####: 2769:    if (ftruncate(fd, 0) == -1) {
+    #####: 2770:        error = errno;
+    #####: 2771:        pidfile_remove();
+    #####: 2772:        errno = error;
+    #####: 2773:        err(1, "ftruncate() failed");
+        -: 2774:    }
+        -: 2775:
+    #####: 2776:    snprintf(pidstr, sizeof(pidstr), "%d", (int)getpid());
+    #####: 2777:    if (pwrite(fd, pidstr, strlen(pidstr), 0) != (ssize_t)strlen(pidstr)) {
+    #####: 2778:        error = errno;
+    #####: 2779:        pidfile_remove();
+    #####: 2780:        errno = error;
+    #####: 2781:        err(1, "pwrite() failed");
+        -: 2782:    }
+    #####: 2783:}
+        -: 2784:/* [<-] end of pidfile helpers. */
+        -: 2785:
+        -: 2786:/* Close all sockets and FILEs and exit. */
+        9: 2787:static void stop_running(int sig unused) {
+        9: 2788:    running = 0;
+        9: 2789:}
+        -: 2790:
+        -: 2791:/* Execution starts here. */
+       12: 2792:int main(int argc, char **argv) {
+      252: 2793:    printf("%s, %s.\n", pkgname, copyright);
+       12: 2794:    parse_default_extension_map();
+       12: 2795:    parse_commandline(argc, argv);
+        -: 2796:    /* parse_commandline() might override parts of the extension map by
+        -: 2797:     * parsing a user-specified file.
+        -: 2798:     */
+        9: 2799:    sort_mime_map();
+        9: 2800:    xasprintf(&keep_alive_field, "Keep-Alive: timeout=%d\r\n", timeout_secs);
+        9: 2801:    if (want_server_id)
+        8: 2802:        xasprintf(&server_hdr, "Server: %s\r\n", pkgname);
+        -: 2803:    else
+        1: 2804:        server_hdr = xstrdup("");
+        9: 2805:    init_sockin();
+        -: 2806:
+        -: 2807:    /* open logfile */
+        9: 2808:    if (logfile_name == NULL)
+        8: 2809:        logfile = stdout;
+        -: 2810:    else {
+        1: 2811:        logfile = fopen(logfile_name, "ab");
+        1: 2812:        if (logfile == NULL)
+    #####: 2813:            err(1, "opening logfile: fopen(\"%s\")", logfile_name);
+        -: 2814:    }
+        -: 2815:
+        9: 2816:    if (want_daemon)
+    #####: 2817:        daemonize_start();
+        -: 2818:
+        -: 2819:    /* signals */
+        9: 2820:    if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+    #####: 2821:        err(1, "signal(ignore SIGPIPE)");
+        9: 2822:    if (signal(SIGINT, stop_running) == SIG_ERR)
+    #####: 2823:        err(1, "signal(SIGINT)");
+        9: 2824:    if (signal(SIGTERM, stop_running) == SIG_ERR)
+    #####: 2825:        err(1, "signal(SIGTERM)");
+        -: 2826:
+        -: 2827:    /* security */
+        9: 2828:    if (want_chroot) {
+    #####: 2829:        tzset(); /* read /etc/localtime before we chroot */
+    #####: 2830:        if (chdir(wwwroot) == -1)
+    #####: 2831:            err(1, "chdir(%s)", wwwroot);
+    #####: 2832:        if (chroot(wwwroot) == -1)
+    #####: 2833:            err(1, "chroot(%s)", wwwroot);
+    #####: 2834:        printf("chrooted to `%s'\n", wwwroot);
+    #####: 2835:        wwwroot[0] = '\0'; /* empty string */
+        -: 2836:    }
+        9: 2837:    if (drop_gid != INVALID_GID) {
+    #####: 2838:        gid_t list[1];
+    #####: 2839:        list[0] = drop_gid;
+    #####: 2840:        if (setgroups(1, list) == -1)
+    #####: 2841:            err(1, "setgroups([%d])", (int)drop_gid);
+    #####: 2842:        if (setgid(drop_gid) == -1)
+    #####: 2843:            err(1, "setgid(%d)", (int)drop_gid);
+    #####: 2844:        printf("set gid to %d\n", (int)drop_gid);
+        -: 2845:    }
+        9: 2846:    if (drop_uid != INVALID_UID) {
+    #####: 2847:        if (setuid(drop_uid) == -1)
+    #####: 2848:            err(1, "setuid(%d)", (int)drop_uid);
+    #####: 2849:        printf("set uid to %d\n", (int)drop_uid);
+        -: 2850:    }
+        -: 2851:
+        -: 2852:    /* create pidfile */
+       9*: 2853:    if (pidfile_name) pidfile_create();
+        -: 2854:
+       9*: 2855:    if (want_daemon) daemonize_finish();
+        -: 2856:
+        -: 2857:    /* main loop */
+      330: 2858:    while (running) httpd_poll();
+        -: 2859:
+        -: 2860:    /* clean exit */
+        9: 2861:    xclose(sockin);
+        9: 2862:    if (logfile != NULL) fclose(logfile);
+       9*: 2863:    if (pidfile_name) pidfile_remove();
+        -: 2864:
+        -: 2865:    /* close and free connections */
+        -: 2866:    {
+        9: 2867:        struct connection *conn, *next;
+        -: 2868:
+       9*: 2869:        LIST_FOREACH_SAFE(conn, &connlist, entries, next) {
+    #####: 2870:            LIST_REMOVE(conn, entries);
+    #####: 2871:            free_connection(conn);
+    #####: 2872:            free(conn);
+        -: 2873:        }
+        -: 2874:    }
+        -: 2875:
+        -: 2876:    /* free the mallocs */
+        -: 2877:    {
+        -: 2878:        size_t i;
+      282: 2879:        for (i=0; i<mime_map_size; i++) {
+      273: 2880:            free(mime_map[i].extension);
+      273: 2881:            free(mime_map[i].mimetype);
+        -: 2882:        }
+        9: 2883:        free(mime_map);
+        9: 2884:        if (forward_map)
+        2: 2885:            free(forward_map);
+        9: 2886:        free(keep_alive_field);
+        9: 2887:        free(wwwroot);
+        9: 2888:        free(server_hdr);
+        9: 2889:        free(auth_key);
+        -: 2890:    }
+        -: 2891:
+        -: 2892:    /* usage stats */
+        -: 2893:    {
+        9: 2894:        struct rusage r;
+        -: 2895:
+        9: 2896:        getrusage(RUSAGE_SELF, &r);
+       18: 2897:        printf("CPU time used: %u.%02u user, %u.%02u system\n",
+        9: 2898:            (unsigned int)r.ru_utime.tv_sec,
+        9: 2899:                (unsigned int)(r.ru_utime.tv_usec/10000),
+        9: 2900:            (unsigned int)r.ru_stime.tv_sec,
+        9: 2901:                (unsigned int)(r.ru_stime.tv_usec/10000)
+        -: 2902:        );
+        9: 2903:        printf("Requests: %llu\n", llu(num_requests));
+        9: 2904:        printf("Bytes: %llu in, %llu out\n", llu(total_in), llu(total_out));
+        -: 2905:    }
+        -: 2906:
+        9: 2907:    return 0;
+        -: 2908:}
+        -: 2909:
+        -: 2910:/* vim:set ts=4 sw=4 sts=4 expandtab tw=78: */

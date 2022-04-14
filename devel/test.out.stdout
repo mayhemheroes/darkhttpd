@@ -1,0 +1,1863 @@
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.133404 secs
+accepted connection from 127.0.0.1:41672 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000038 secs
+poll_recv_request(5) got 12 bytes
+url="//.d", target="tmp.httpd.tests/.d", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000279 secs
+accepted connection from 127.0.0.1:41674 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 10 bytes
+url="//.d", target="tmp.httpd.tests/.d", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000452 secs
+accepted connection from 127.0.0.1:41676 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 61 bytes
+url="//.d", target="tmp.httpd.tests/.d", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000200 secs
+accepted connection from 127.0.0.1:41678 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 57 bytes
+url="//.d", target="tmp.httpd.tests/.d", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000206 secs
+accepted connection from 127.0.0.1:41680 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 61 bytes
+url="//.d", target="tmp.httpd.tests/.d", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000177 secs
+accepted connection from 127.0.0.1:41682 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000064 secs
+poll_recv_request(5) got 57 bytes
+url="//.d", target="tmp.httpd.tests/.d", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000219 secs
+accepted connection from 127.0.0.1:41684 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 22 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000589 secs
+accepted connection from 127.0.0.1:41686 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 20 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000423 secs
+accepted connection from 127.0.0.1:41688 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 71 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000414 secs
+accepted connection from 127.0.0.1:41690 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000050 secs
+poll_recv_request(5) got 67 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000255 secs
+accepted connection from 127.0.0.1:41694 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 71 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000393 secs
+accepted connection from 127.0.0.1:41696 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 67 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000268 secs
+accepted connection from 127.0.0.1:41698 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000219 secs
+poll_recv_request(5) got 23 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000185 secs
+accepted connection from 127.0.0.1:41702 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000021 secs
+poll_recv_request(5) got 21 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000239 secs
+accepted connection from 127.0.0.1:41704 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000035 secs
+poll_recv_request(5) got 72 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000194 secs
+accepted connection from 127.0.0.1:41706 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 68 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000177 secs
+accepted connection from 127.0.0.1:41708 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000047 secs
+poll_recv_request(5) got 72 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000191 secs
+accepted connection from 127.0.0.1:41710 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 68 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000174 secs
+accepted connection from 127.0.0.1:41712 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000020 secs
+poll_recv_request(5) got 20 bytes
+url="/forbidden/x", target="tmp.httpd.tests/forbidden/x", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 209: 0+[0-208] of 209
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000194 secs
+accepted connection from 127.0.0.1:41714 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000020 secs
+poll_recv_request(5) got 18 bytes
+url="/forbidden/x", target="tmp.httpd.tests/forbidden/x", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 209: 0+[0-208] of 209
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000169 secs
+accepted connection from 127.0.0.1:41716 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 69 bytes
+url="/forbidden/x", target="tmp.httpd.tests/forbidden/x", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 209: 0+[0-208] of 209
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000210 secs
+accepted connection from 127.0.0.1:41718 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 65 bytes
+url="/forbidden/x", target="tmp.httpd.tests/forbidden/x", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 209: 0+[0-208] of 209
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000174 secs
+accepted connection from 127.0.0.1:41720 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 69 bytes
+url="/forbidden/x", target="tmp.httpd.tests/forbidden/x", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 209: 0+[0-208] of 209
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000312 secs
+accepted connection from 127.0.0.1:41722 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 65 bytes
+url="/forbidden/x", target="tmp.httpd.tests/forbidden/x", content-type="application/octet-stream"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 209: 0+[0-208] of 209
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000358 secs
+accepted connection from 127.0.0.1:41724 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 9 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000243 secs
+accepted connection from 127.0.0.1:41726 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000020 secs
+poll_recv_request(5) got 7 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000416 secs
+accepted connection from 127.0.0.1:41728 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 58 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000399 secs
+accepted connection from 127.0.0.1:41730 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000034 secs
+poll_recv_request(5) got 54 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000268 secs
+accepted connection from 127.0.0.1:41734 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 58 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000549 secs
+accepted connection from 127.0.0.1:41736 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 54 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000255 secs
+accepted connection from 127.0.0.1:41738 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000021 secs
+poll_recv_request(5) got 12 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000194 secs
+accepted connection from 127.0.0.1:41740 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000020 secs
+poll_recv_request(5) got 10 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000169 secs
+accepted connection from 127.0.0.1:41742 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 61 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000426 secs
+accepted connection from 127.0.0.1:41744 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 57 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000174 secs
+accepted connection from 127.0.0.1:41746 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 61 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000480 secs
+accepted connection from 127.0.0.1:41748 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 57 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000177 secs
+accepted connection from 127.0.0.1:41750 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000020 secs
+poll_recv_request(5) got 15 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000335 secs
+accepted connection from 127.0.0.1:41752 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000020 secs
+poll_recv_request(5) got 13 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000183 secs
+accepted connection from 127.0.0.1:41754 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 64 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000371 secs
+accepted connection from 127.0.0.1:41756 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000027 secs
+poll_recv_request(5) got 60 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000190 secs
+accepted connection from 127.0.0.1:41758 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 64 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000376 secs
+accepted connection from 127.0.0.1:41760 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 60 bytes
+poll_send_header(5) sent 200 bytes
+poll_send_reply(5) sent 197: 0+[0-196] of 197
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000191 secs
+accepted connection from 127.0.0.1:41762 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000021 secs
+poll_recv_request(5) got 15 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000561 secs
+accepted connection from 127.0.0.1:41764 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 13 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000263 secs
+accepted connection from 127.0.0.1:41766 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000238 secs
+poll_recv_request(5) got 64 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000257 secs
+accepted connection from 127.0.0.1:41768 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 60 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000415 secs
+accepted connection from 127.0.0.1:41770 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 64 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000243 secs
+accepted connection from 127.0.0.1:41772 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000177 secs
+poll_recv_request(5) got 60 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000260 secs
+accepted connection from 127.0.0.1:41774 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000028 secs
+poll_recv_request(5) got 22 bytes
+url="/not_found.txt", target="tmp.httpd.tests/not_found.txt", content-type="text/plain"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000379 secs
+accepted connection from 127.0.0.1:41776 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 20 bytes
+url="/not_found.txt", target="tmp.httpd.tests/not_found.txt", content-type="text/plain"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000175 secs
+accepted connection from 127.0.0.1:41778 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 71 bytes
+url="/not_found.txt", target="tmp.httpd.tests/not_found.txt", content-type="text/plain"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000362 secs
+accepted connection from 127.0.0.1:41780 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 67 bytes
+url="/not_found.txt", target="tmp.httpd.tests/not_found.txt", content-type="text/plain"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000180 secs
+accepted connection from 127.0.0.1:41782 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 71 bytes
+url="/not_found.txt", target="tmp.httpd.tests/not_found.txt", content-type="text/plain"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000340 secs
+accepted connection from 127.0.0.1:41784 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 67 bytes
+url="/not_found.txt", target="tmp.httpd.tests/not_found.txt", content-type="text/plain"
+poll_send_header(5) sent 198 bytes
+poll_send_reply(5) sent 200: 0+[0-199] of 200
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000179 secs
+accepted connection from 127.0.0.1:41786 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000020 secs
+poll_recv_request(5) got 20 bytes
+poll_send_header(5) sent 210 bytes
+poll_send_reply(5) sent 230: 0+[0-229] of 230
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000332 secs
+accepted connection from 127.0.0.1:41788 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 18 bytes
+poll_send_header(5) sent 210 bytes
+poll_send_reply(5) sent 230: 0+[0-229] of 230
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000170 secs
+accepted connection from 127.0.0.1:41790 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000023 secs
+poll_recv_request(5) got 69 bytes
+poll_send_header(5) sent 210 bytes
+poll_send_reply(5) sent 230: 0+[0-229] of 230
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000187 secs
+accepted connection from 127.0.0.1:41792 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000052 secs
+poll_recv_request(5) got 65 bytes
+poll_send_header(5) sent 210 bytes
+poll_send_reply(5) sent 230: 0+[0-229] of 230
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000186 secs
+accepted connection from 127.0.0.1:41794 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 69 bytes
+poll_send_header(5) sent 210 bytes
+poll_send_reply(5) sent 230: 0+[0-229] of 230
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.001431 secs
+accepted connection from 127.0.0.1:41796 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000027 secs
+poll_recv_request(5) got 65 bytes
+poll_send_header(5) sent 210 bytes
+poll_send_reply(5) sent 230: 0+[0-229] of 230
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000203 secs
+accepted connection from 127.0.0.1:41798 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000020 secs
+poll_recv_request(5) got 16 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002729 secs
+accepted connection from 127.0.0.1:41800 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 14 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000662 secs
+accepted connection from 127.0.0.1:41802 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 65 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000260 secs
+accepted connection from 127.0.0.1:41804 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 61 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000260 secs
+accepted connection from 127.0.0.1:41806 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 65 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000434 secs
+accepted connection from 127.0.0.1:41808 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 61 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 357: 0+[0-356] of 357
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000754 secs
+accepted connection from 127.0.0.1:41812 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 54 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 419: 0+[0-418] of 419
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000467 secs
+accepted connection from 127.0.0.1:41814 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000031 secs
+poll_recv_request(5) got 54 bytes
+poll_send_header(5) sent 191 bytes
+poll_send_reply(5) sent 419: 0+[0-418] of 419
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000989 secs
+accepted connection from 127.0.0.1:41816 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000027 secs
+poll_recv_request(5) got 59 bytes
+url="/mydir", target="tmp.httpd.tests/mydir", content-type="application/octet-stream"
+poll_send_header(5) sent 203 bytes
+poll_send_reply(5) sent 219: 0+[0-218] of 219
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002539 secs
+accepted connection from 127.0.0.1:41818 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 63 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002836 secs
+accepted connection from 127.0.0.1:41820 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 65 bytes
+url="/what%3f.jpg", target="tmp.httpd.tests/what?.jpg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002486 secs
+accepted connection from 127.0.0.1:41822 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 77 bytes
+url="/what%3f.jpg", target="tmp.httpd.tests/what?.jpg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002472 secs
+accepted connection from 127.0.0.1:41824 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 69 bytes
+url="/./././data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002578 secs
+accepted connection from 127.0.0.1:41826 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 83 bytes
+url="%2f%64%61%74%61%2e%6a%70%65%67", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002594 secs
+accepted connection from 127.0.0.1:41828 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 64 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002299 secs
+accepted connection from 127.0.0.1:41830 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(5) got 77 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003552 secs
+accepted connection from 127.0.0.1:41832 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.001059 secs
+poll_recv_request(5) got 64 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.009531 secs
+accepted connection from 127.0.0.1:41834 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000030 secs
+poll_recv_request(5) got 64 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 224 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000094 secs
+accepted connection from 127.0.0.1:41836 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000022 secs
+poll_recv_request(5) got 112 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+not modified since Sat, 02 Apr 2022 20:50:44 GMT
+poll_send_header(5) sent 140 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003393 secs
+accepted connection from 127.0.0.1:41838 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000223 secs
+poll_recv_request(5) got 82 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 220 bytes
+poll_send_reply(5) sent 239: 0+[0-238] of 239
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003141 secs
+accepted connection from 127.0.0.1:41840 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 82 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 220 bytes
+poll_send_reply(5) sent 239: 0+[0-238] of 239
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003615 secs
+accepted connection from 127.0.0.1:41842 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000036 secs
+poll_recv_request(5) got 82 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 220 bytes
+poll_send_reply(5) sent 250: 0+[0-249] of 250
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002424 secs
+accepted connection from 127.0.0.1:41844 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 86 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 2320-2344/2345
+poll_send_header(5) sent 272 bytes
+poll_send_reply(5) sent 25: 2320+[0-24] of 25
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002713 secs
+accepted connection from 127.0.0.1:41848 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 80 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 2320-2344/2345
+poll_send_header(5) sent 272 bytes
+poll_send_reply(5) sent 25: 2320+[0-24] of 25
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003640 secs
+accepted connection from 127.0.0.1:41850 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000045 secs
+poll_recv_request(5) got 82 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 0-2344/2345
+poll_send_header(5) sent 271 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002574 secs
+accepted connection from 127.0.0.1:41854 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 82 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 10-20/2345
+poll_send_header(5) sent 268 bytes
+poll_send_reply(5) sent 11: 10+[0-10] of 11
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003211 secs
+accepted connection from 127.0.0.1:41856 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 80 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 5-5/2345
+poll_send_header(5) sent 265 bytes
+poll_send_reply(5) sent 1: 5+[0-0] of 1
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.005087 secs
+accepted connection from 127.0.0.1:41860 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 86 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 220 bytes
+poll_send_reply(5) sent 250: 0+[0-249] of 250
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002662 secs
+accepted connection from 127.0.0.1:41862 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000035 secs
+poll_recv_request(5) got 80 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 0-0/2345
+poll_send_header(5) sent 265 bytes
+poll_send_reply(5) sent 1: 0+[0-0] of 1
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002433 secs
+accepted connection from 127.0.0.1:41864 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 86 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 2344-2344/2345
+poll_send_header(5) sent 271 bytes
+poll_send_reply(5) sent 1: 2344+[0-0] of 1
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002626 secs
+accepted connection from 127.0.0.1:41866 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 80 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 10-2344/2345
+poll_send_header(5) sent 272 bytes
+poll_send_reply(5) sent 2335: 10+[0-2334] of 2335
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003862 secs
+accepted connection from 127.0.0.1:41868 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000068 secs
+poll_recv_request(5) got 68 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000090 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002892 secs
+accepted connection from 127.0.0.1:41872 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000041 secs
+poll_recv_request(5) got 70 bytes
+url="/what%3f.jpg", target="tmp.httpd.tests/what?.jpg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000093 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002493 secs
+accepted connection from 127.0.0.1:41874 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000648 secs
+poll_recv_request(5) got 82 bytes
+url="/what%3f.jpg", target="tmp.httpd.tests/what?.jpg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.001021 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002661 secs
+accepted connection from 127.0.0.1:41876 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000065 secs
+poll_recv_request(5) got 74 bytes
+url="/./././data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000092 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003673 secs
+accepted connection from 127.0.0.1:41878 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000060 secs
+poll_recv_request(5) got 88 bytes
+url="%2f%64%61%74%61%2e%6a%70%65%67", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000101 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.005561 secs
+accepted connection from 127.0.0.1:41880 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000060 secs
+poll_recv_request(5) got 69 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000100 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003155 secs
+accepted connection from 127.0.0.1:41882 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000046 secs
+poll_recv_request(5) got 82 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000082 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002419 secs
+accepted connection from 127.0.0.1:41884 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000308 secs
+poll_recv_request(5) got 69 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000070 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.004377 secs
+accepted connection from 127.0.0.1:41886 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000048 secs
+poll_recv_request(5) got 69 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 229 bytes
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000060 secs
+poll_recv_request(5) got 117 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+not modified since Sat, 02 Apr 2022 20:50:45 GMT
+poll_send_header(5) sent 145 bytes
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000066 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003302 secs
+accepted connection from 127.0.0.1:41888 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000045 secs
+poll_recv_request(5) got 87 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 225 bytes
+poll_send_reply(5) sent 239: 0+[0-238] of 239
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000071 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.006527 secs
+accepted connection from 127.0.0.1:41890 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000049 secs
+poll_recv_request(5) got 87 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 225 bytes
+poll_send_reply(5) sent 239: 0+[0-238] of 239
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000075 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003023 secs
+accepted connection from 127.0.0.1:41892 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000043 secs
+poll_recv_request(5) got 87 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 225 bytes
+poll_send_reply(5) sent 250: 0+[0-249] of 250
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000322 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003361 secs
+accepted connection from 127.0.0.1:41894 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000070 secs
+poll_recv_request(5) got 91 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 2320-2344/2345
+poll_send_header(5) sent 277 bytes
+poll_send_reply(5) sent 25: 2320+[0-24] of 25
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000090 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002952 secs
+accepted connection from 127.0.0.1:41896 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000044 secs
+poll_recv_request(5) got 85 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 2320-2344/2345
+poll_send_header(5) sent 277 bytes
+poll_send_reply(5) sent 25: 2320+[0-24] of 25
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000079 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002843 secs
+accepted connection from 127.0.0.1:41898 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000068 secs
+poll_recv_request(5) got 87 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 0-2344/2345
+poll_send_header(5) sent 276 bytes
+poll_send_reply(5) sent 2345: 0+[0-2344] of 2345
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000088 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003358 secs
+accepted connection from 127.0.0.1:41900 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000053 secs
+poll_recv_request(5) got 87 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 10-20/2345
+poll_send_header(5) sent 273 bytes
+poll_send_reply(5) sent 11: 10+[0-10] of 11
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000079 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002515 secs
+accepted connection from 127.0.0.1:41902 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000157 secs
+poll_recv_request(5) got 85 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 5-5/2345
+poll_send_header(5) sent 270 bytes
+poll_send_reply(5) sent 1: 5+[0-0] of 1
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000088 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.004065 secs
+accepted connection from 127.0.0.1:41904 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000218 secs
+poll_recv_request(5) got 91 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 225 bytes
+poll_send_reply(5) sent 250: 0+[0-249] of 250
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000078 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.007296 secs
+accepted connection from 127.0.0.1:41906 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000052 secs
+poll_recv_request(5) got 85 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 0-0/2345
+poll_send_header(5) sent 270 bytes
+poll_send_reply(5) sent 1: 0+[0-0] of 1
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000090 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002920 secs
+accepted connection from 127.0.0.1:41908 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000045 secs
+poll_recv_request(5) got 91 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 2344-2344/2345
+poll_send_header(5) sent 276 bytes
+poll_send_reply(5) sent 1: 2344+[0-0] of 1
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000080 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002883 secs
+accepted connection from 127.0.0.1:41910 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000057 secs
+poll_recv_request(5) got 85 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+sending 10-2344/2345
+poll_send_header(5) sent 277 bytes
+poll_send_reply(5) sent 2335: 10+[0-2334] of 2335
+recycle_connection(5)
+free_connection(-1)
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000134 secs
+poll_recv_request(5) got 0 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.011093 secs
+accepted connection from 127.0.0.1:41912 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000028 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 2147483648-2147484671/2147485696
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 2147483648+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.006503 secs
+accepted connection from 127.0.0.1:41914 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000027 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 2147483649-2147484672/2147485696
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 2147483649+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.008209 secs
+accepted connection from 127.0.0.1:41916 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000032 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 2147483650-2147484673/2147485696
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 2147483650+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.005223 secs
+accepted connection from 127.0.0.1:41918 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 2147483651-2147484674/2147485696
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 2147483651+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.005087 secs
+accepted connection from 127.0.0.1:41920 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 2147483647-2147484670/2147485696
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 2147483647+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.004834 secs
+accepted connection from 127.0.0.1:41922 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 2147483646-2147484669/2147485696
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 2147483646+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003949 secs
+accepted connection from 127.0.0.1:41924 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 2147483645-2147484668/2147485696
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 2147483645+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.005755 secs
+accepted connection from 127.0.0.1:41926 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000028 secs
+poll_recv_request(5) got 63 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 230 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.008671 secs
+accepted connection from 127.0.0.1:41928 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000036 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 4294967296-4294968319/4294969344
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 4294967296+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.005170 secs
+accepted connection from 127.0.0.1:41930 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000030 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 4294967297-4294968320/4294969344
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 4294967297+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.006668 secs
+accepted connection from 127.0.0.1:41932 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000086 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 4294967298-4294968321/4294969344
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 4294967298+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.004573 secs
+accepted connection from 127.0.0.1:41934 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 4294967299-4294968322/4294969344
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 4294967299+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.007243 secs
+accepted connection from 127.0.0.1:41936 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 4294967295-4294968318/4294969344
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 4294967295+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.006814 secs
+accepted connection from 127.0.0.1:41938 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000052 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 4294967294-4294968317/4294969344
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 4294967294+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003982 secs
+accepted connection from 127.0.0.1:41940 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 97 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+sending 4294967293-4294968316/4294969344
+poll_send_header(5) sent 292 bytes
+poll_send_reply(5) sent 1024: 4294967293+[0-1023] of 1024
+free_connection(5)
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.004987 secs
+accepted connection from 127.0.0.1:41942 (fd 5)
+poll_recv_request(5) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 5 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(5) got 63 bytes
+url="/big.jpeg", target="tmp.httpd.tests/big.jpeg", content-type="image/jpeg"
+poll_send_header(5) sent 230 bytes
+free_connection(5)
+select() with max_fd 3 timeout 0
+CPU time used: 0.00 user, 0.01 system
+Requests: 129
+Bytes: 8375 in, 105450 out
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.109737 secs
+accepted connection from 127.0.0.1:41944 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000125 secs
+poll_recv_request(4) got 86 bytes
+host="secure.example.com"
+poll_send_header(4) sent 234 bytes
+poll_send_reply(4) sent 281: 0+[0-280] of 281
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET /foo/bar HTTP/1.1" 301 515 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000535 secs
+accepted connection from 127.0.0.1:41946 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000024 secs
+poll_recv_request(4) got 72 bytes
+host="example.com"
+poll_send_header(4) sent 219 bytes
+poll_send_reply(4) sent 251: 0+[0-250] of 251
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET / HTTP/1.1" 301 470 "" "test.py"
+select() with max_fd 3 timeout 0
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.111872 secs
+accepted connection from 127.0.0.1:41948 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000353 secs
+poll_recv_request(4) got 89 bytes
+host="still-not.example.com"
+poll_send_header(4) sent 231 bytes
+poll_send_reply(4) sent 275: 0+[0-274] of 275
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET /foo/bar HTTP/1.1" 301 506 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000702 secs
+accepted connection from 127.0.0.1:41950 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000033 secs
+poll_recv_request(4) got 76 bytes
+host="not-example.com"
+poll_send_header(4) sent 224 bytes
+poll_send_reply(4) sent 261: 0+[0-260] of 261
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET / HTTP/1.1" 301 485 "" "test.py"
+select() with max_fd 3 timeout 0
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.103236 secs
+accepted connection from 127.0.0.1:41952 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000037 secs
+poll_recv_request(4) got 56 bytes
+poll_send_header(4) sent 171 bytes
+poll_send_reply(4) sent 150: 0+[0-149] of 150
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "BOGUS / HTTP/1.1" 501 321 "" "test.py"
+select() with max_fd 3 timeout 0
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.102669 secs
+accepted connection from 127.0.0.1:41954 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000046 secs
+poll_recv_request(4) got 66 bytes
+url="/test-file.a1", target="tmp.httpd.tests/test-file.a1", content-type="test/type1"
+poll_send_header(4) sent 221 bytes
+poll_send_reply(4) sent 6: 0+[0-5] of 6
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET /test-file.a1 HTTP/1.1" 200 227 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000749 secs
+accepted connection from 127.0.0.1:41956 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(4) got 67 bytes
+url="/test-file.ap2", target="tmp.httpd.tests/test-file.ap2", content-type="test/type2"
+poll_send_header(4) sent 221 bytes
+poll_send_reply(4) sent 6: 0+[0-5] of 6
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET /test-file.ap2 HTTP/1.1" 200 227 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000579 secs
+accepted connection from 127.0.0.1:41958 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(4) got 68 bytes
+url="/test-file.app3", target="tmp.httpd.tests/test-file.app3", content-type="test/type3"
+poll_send_header(4) sent 221 bytes
+poll_send_reply(4) sent 6: 0+[0-5] of 6
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET /test-file.app3 HTTP/1.1" 200 227 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000552 secs
+accepted connection from 127.0.0.1:41960 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(4) got 69 bytes
+url="/test-file.appp4", target="tmp.httpd.tests/test-file.appp4", content-type="test/default"
+poll_send_header(4) sent 223 bytes
+poll_send_reply(4) sent 6: 0+[0-5] of 6
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET /test-file.appp4 HTTP/1.1" 200 229 "" "test.py"
+select() with max_fd 3 timeout 0
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.101381 secs
+accepted connection from 127.0.0.1:41962 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000046 secs
+poll_recv_request(4) got 54 bytes
+poll_send_header(4) sent 198 bytes
+poll_send_reply(4) sent 200: 0+[0-199] of 200
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:45 -0400] "GET / HTTP/1.1" 404 398 "" "test.py"
+select() with max_fd 3 timeout 0
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.102599 secs
+accepted connection from 127.0.0.1:41964 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 1
+select() returned 0 after 1.000415 secs
+poll_check_timeout(4) closing connection
+free_connection(4)
+select() with max_fd 3 timeout 0
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.121915 secs
+accepted connection from 127.0.0.1:41968 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000037 secs
+poll_recv_request(4) got 63 bytes
+poll_send_header(4) sent 253 bytes
+poll_send_reply(4) sent 211: 0+[0-210] of 211
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:47 -0400] "GET /data.jpeg HTTP/1.1" 401 464 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.002733 secs
+accepted connection from 127.0.0.1:41972 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(4) got 105 bytes
+url="/data.jpeg", target="tmp.httpd.tests/data.jpeg", content-type="image/jpeg"
+poll_send_header(4) sent 224 bytes
+poll_send_reply(4) sent 2345: 0+[0-2344] of 2345
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:47 -0400] "GET /data.jpeg HTTP/1.1" 200 2569 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.003135 secs
+accepted connection from 127.0.0.1:41974 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000028 secs
+poll_recv_request(4) got 109 bytes
+poll_send_header(4) sent 253 bytes
+poll_send_reply(4) sent 211: 0+[0-210] of 211
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:47 -0400] "GET /data.jpeg HTTP/1.1" 401 464 "" "test.py"
+select() with max_fd 3 timeout 0
+darkhttpd/1.13.from.git, copyright (c) 2003-2021 Emil Mikulic.
+listening on: http://0.0.0.0:12346/
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.089120 secs
+accepted connection from 127.0.0.1:41976 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000043 secs
+poll_recv_request(4) got 103 bytes
+poll_send_header(4) sent 223 bytes
+poll_send_reply(4) sent 259: 0+[0-258] of 259
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:47 -0400] "GET /foo/bar HTTP/1.1" 301 482 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000630 secs
+accepted connection from 127.0.0.1:41978 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000026 secs
+poll_recv_request(4) got 97 bytes
+poll_send_header(4) sent 191 bytes
+poll_send_reply(4) sent 447: 0+[0-446] of 447
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:47 -0400] "GET / HTTP/1.1" 200 638 "" "test.py"
+select() with max_fd 3 timeout 0
+select() returned 1 after 0.000231 secs
+accepted connection from 127.0.0.1:41980 (fd 4)
+poll_recv_request(4) got -1 bytes
+poll_recv_request would have blocked
+select() with max_fd 4 timeout 30
+select() returned 1 after 0.000025 secs
+poll_recv_request(4) got 72 bytes
+poll_send_header(4) sent 191 bytes
+poll_send_reply(4) sent 447: 0+[0-446] of 447
+free_connection(4)
+127.0.0.1 - - [02/Apr/2022:16:50:47 -0400] "GET / HTTP/1.1" 200 638 "" "test.py"
+select() with max_fd 3 timeout 0
