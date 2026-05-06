@@ -1,0 +1,7 @@
+project: PROJECT
+target: darkhttpd
+cmds:
+- cmd: /darkhttpd /tmp --port 8080
+  network:
+    url: http://localhost:8080/
+    timeout: 3
